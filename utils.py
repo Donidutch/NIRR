@@ -7,7 +7,6 @@ import pandas as pd
 import pyterrier as pt
 from pyserini.index import IndexReader
 from pyserini.search import LuceneSearcher, SimpleSearcher
-from pyterrier.index import TRECCollectionIndexer
 
 
 def index_dataset(path_to_dataset: str, index_path: str) -> None:
@@ -100,6 +99,8 @@ def measure_index_stats(index_path: str, queries: List[str]) -> Dict[str, Any]:
 
 
 def load_dataset_and_index(dataset_file: str, index_path: str) -> Any:
+    from pyterrier.index import TRECCollectionIndexer
+
     """
     Loads the index from the provided file path or index the dataset and load the index.
 
@@ -113,8 +114,8 @@ def load_dataset_and_index(dataset_file: str, index_path: str) -> Any:
     if not os.path.exists(index_path):
         indexer = TRECCollectionIndexer(index_path, verbose=True)
         indexer.index(dataset_file)
-    indexref = pt.IndexRef.of(index_path)
-    index = pt.IndexFactory.of(indexref)
+    indexref = pt.IndexRef.of(index_path)  # type: ignore
+    index = pt.IndexFactory.of(indexref)  # type: ignore
     return index
 
 
@@ -129,8 +130,8 @@ def load_queries(qrels_file: str, query_file: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame : DataFrame containing the queries.
     """
-    queries_df = pt.io.read_qrels(qrels_file)
-    topics_df = pt.io.read_topics(query_file, format="singleline")
+    queries_df = pt.io.read_qrels(qrels_file)  # type: ignore
+    topics_df = pt.io.read_topics(query_file, format="singleline")  # type: ignore
     queries_df["query_len"] = topics_df["query"].map(len)
     return queries_df
 
@@ -164,9 +165,9 @@ def measure_index_statistics(
         reader = IndexReader(index_path)
 
         # Collect index statistics
-        num_docs = reader.num_docs()
-        num_terms = reader.num_terms()
-        total_terms = reader.total_terms()
+        num_docs = reader.stats()["documents"]
+        num_terms = reader.stats()["unique_terms"]
+        total_terms = reader.stats()["total_terms"]
 
         # Measure index size and search time
         index_size = get_size(index_path)
