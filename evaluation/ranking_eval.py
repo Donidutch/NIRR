@@ -25,7 +25,6 @@ def run_cross_validation(
 ) -> None:
     models = {"BM25": BM25Model, "LM": LMModel}
     topics, qrels, qrels_df = utils.load_topics_and_qrels(topic_file, qrels_file)
-    topics = topics.iloc[:3000]
     kf = KFold(n_splits=k)
     all_results = []
     for index_variant in index_variants:
@@ -176,7 +175,7 @@ def main():
     qrels_file = "proc_data/train_tsv/subset_msmarco-doctrain-qrels.tsv"
     index_path = "./index/"
 
-    kfolds = 2
+    kfolds = 5
 
     index_variants = [
         "full_index",
