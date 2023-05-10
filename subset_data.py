@@ -103,7 +103,7 @@ def subset_topics(num_topics: int = 100):
     Returns:
         str: The filepath to the output subset file.
     """
-    input_file = "proc_data/train/queries.doctrain.tsv"
+    input_file = "train/queries.doctrain.tsv"
     output_file = "proc_data/train/subset_queries.doctrain.tsv"
 
     topics = pd.read_csv(input_file, sep="\t", names=["qid", "query"])
@@ -124,7 +124,7 @@ def subset_qrels(topic_subset_file: str):
     Returns:
         str: The filepath to the output subset file.
     """
-    input_file = "proc_data/train/msmarco-doctrain-qrels.tsv"
+    input_file = "train/msmarco-doctrain-qrels.tsv"
     output_file = "proc_data/train/subset_msmarco-doctrain-qrels.tsv"
 
     topics_subset = pd.read_csv(topic_subset_file, sep="\t", names=["qid", "query"])
@@ -146,7 +146,7 @@ def subset_qrels(topic_subset_file: str):
 
 @app.command()
 def subset_train_data(
-    num_topics: int = typer.Option(1000, help="Number of topics to subset")
+    num_topics: int = typer.Option(10000, help="Number of topics to subset")
 ) -> Tuple[str, str]:
     """
     Subsets the training data by selecting the first `num_topics` topics
@@ -156,10 +156,10 @@ def subset_train_data(
     :return: A tuple containing the paths to the output topic and qrels files.
     """
 
-    topic_input_file = "proc_data/train/queries.doctrain.tsv"
-    topic_output_file = "proc_data/train/subset_queries.doctrain.tsv"
-    qrels_input_file = "proc_data/train/msmarco-doctrain-qrels.tsv"
-    qrels_output_file = "proc_data/train/subset_msmarco-doctrain-qrels.tsv"
+    topic_input_file = "train/queries.doctrain.tsv"
+    topic_output_file = "./proc_data/train_tsv/subset_queries.doctrain.tsv"
+    qrels_input_file = "train/msmarco-doctrain-qrels.tsv"
+    qrels_output_file = "./proc_data/train_tsv/subset_msmarco-doctrain-qrels.tsv"
 
     # Subset topics
     topics = pd.read_csv(
@@ -203,14 +203,14 @@ def create_overlapping_subsets(
         "proc_data/trec/subset_msmarco.trec", help="Path to output file"
     ),
     topic_input_file: str = typer.Option(
-        "proc_data/train/queries.doctrain.tsv", help="Path to topic input file"
+        "train/queries.doctrain.tsv", help="Path to topic input file"
     ),
     topic_output_file: str = typer.Option(
         "proc_data/train/subset_queries.doctrain.tsv",
         help="Path to topic output file",
     ),
     qrels_input_file: str = typer.Option(
-        "proc_data/train/msmarco-doctrain-qrels.tsv",
+        "train/msmarco-doctrain-qrels.tsv",
         help="Path to qrels input file",
     ),
     qrels_output_file: str = typer.Option(
