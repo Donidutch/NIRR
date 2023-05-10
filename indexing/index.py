@@ -11,7 +11,7 @@ app = typer.Typer()
 
 @app.command()
 def build(
-    path_to_dataset: str = typer.Argument(...), output_folder: str = "./indexes/"
+    path_to_dataset: str = typer.Argument(...), output_folder: str = "/indexes/"
 ) -> None:
     """
     Build four variants of the Pyserini index for the given TREC dataset.
@@ -76,7 +76,7 @@ def build(
             --stemmer {stemmer_arg} \
             {keep_stopwords_arg} \
             {stopwords_file_arg} \
-            --storeContents
+            --storeContents --storeRaw\
         """
 
         print(f"Indexing {variant['name']}...")
