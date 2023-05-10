@@ -1,6 +1,6 @@
-from time import sleep
+import time
 from indexing.subset_data import create_subsets
-from indexing.index import build
+from indexing.index import build_all_indexes
 from evaluation.rank_eval import main as rank_eval_main
 
 
@@ -28,11 +28,13 @@ def main():
     )
 
     # Define your parameters for build function
-    path_to_dataset = "data/proc_data/train_trec/"
+    path_to_dataset = "data/proc_data/train_trec"
     output_folder = "index/"
-    sleep(2)
-    # Call build function
-    build(path_to_dataset, output_folder)
+    build_times = build_all_indexes(path_to_dataset, output_folder)
+    print("Build times:")
+    for name, build_time in build_times.items():
+        print(f"{name}: {build_time:.2f} seconds")
+
     rank_eval_main(
         topic_file=topic_output_file,
         qrels_file=qrels_output_file,
