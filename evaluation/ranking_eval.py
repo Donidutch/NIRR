@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List
 
@@ -9,11 +8,11 @@ import pandas as pd
 import pytrec_eval
 from sklearn.model_selection import KFold
 from tqdm import tqdm
+from models import BM25Model, LMModel
 
-import evaluation.utils as utils
-from evaluation.models import BM25Model, LMModel
+import utils
 
-sys.path.append('.')
+
 # logging.basicConfig(level=logging.ERROR)
 metrics = {
     "ndcg",

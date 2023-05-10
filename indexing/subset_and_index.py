@@ -1,7 +1,5 @@
 import os
-# import sys
-# sys.path.append(".")
-# Run subset-train-data command
+
 os.system(
     "python indexing/subset_data.py subset-train-data"
 )

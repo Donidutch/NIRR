@@ -1,11 +1,9 @@
 import os
-import sys
 import time
 from typing import Any, Dict, List
 
 import typer
 
-sys.path.append(".")
 app = typer.Typer()
 
 # os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-20-openjdk"
