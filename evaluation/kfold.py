@@ -9,7 +9,6 @@ from sklearn.model_selection import KFold
 from tqdm import tqdm
 
 
-
 def run_single_fold(
     train_topics,
     test_topics,
@@ -130,8 +129,7 @@ def run_cross_validation(
             index=False,
             float_format="%.3f",
         )
-
-        summary = results_df.groupby("Model").mean()
+        summary = results_df
         summary = summary.drop(columns=["Fold"])
         summary = summary.reset_index()
         summary["Index Variant"] = index_variant["name"]

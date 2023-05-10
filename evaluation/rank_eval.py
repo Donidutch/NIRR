@@ -60,6 +60,7 @@ def main(
     )
 
     summary_df = create_summary(all_results, models)
+    summary_df.to_csv("./output/results.csv", index=False, float_format="%.3f")
     return summary_df
 
 

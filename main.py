@@ -1,3 +1,4 @@
+from time import sleep
 from indexing.subset_data import create_subsets
 from indexing.index import build
 from evaluation.rank_eval import main as rank_eval_main
@@ -5,8 +6,8 @@ from evaluation.rank_eval import main as rank_eval_main
 
 def main():
     # Define your parameters
-    num_docs = 10000
-    num_topics = 10000
+    num_docs = 100
+    num_topics = 100
     input_file = "data/trec/fulldocs-new.trec"
     output_file = "data/proc_data/train_trec/subset_msmarco.trec"
     topic_input_file = "data/train/queries.doctrain.tsv"
@@ -29,7 +30,7 @@ def main():
     # Define your parameters for build function
     path_to_dataset = "data/proc_data/train_trec/"
     output_folder = "index/"
-
+    sleep(2)
     # Call build function
     build(path_to_dataset, output_folder)
     rank_eval_main(
