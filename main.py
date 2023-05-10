@@ -6,8 +6,8 @@ from evaluation.rank_eval import main as rank_eval_main
 
 def main():
     # Define your parameters
-    num_docs = 100
-    num_topics = 100
+    num_docs = 10000
+    num_topics = 10000
     input_file = "data/trec/fulldocs-new.trec"
     output_file = "data/proc_data/train_trec/subset_msmarco.trec"
     topic_input_file = "data/train/queries.doctrain.tsv"
