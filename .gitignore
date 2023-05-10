@@ -4,3 +4,7 @@
 /indexes
 /proc_data
 /train
+/output
+/cross_validation.log
+/index 
+/__pycache__
