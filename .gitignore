@@ -1,0 +1,6 @@
+/.venv
+/.vscode
+/data
+/indexes
+/proc_data
+/train
