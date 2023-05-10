@@ -1,7 +1,7 @@
 import os
 
 os.system(
-    "python ./indexing/subset_data.py"
+    "python indexing/subset_data.py create-overlapping-subsets"
 )
 
 # Run index_opt.py command

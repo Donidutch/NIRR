@@ -4,8 +4,7 @@ from typing import Optional, Tuple
 
 import pandas as pd
 import typer
-import sys 
-sys.path.append('.')
+
 app = typer.Typer()
 
 
@@ -15,7 +14,7 @@ def subset_marco(
         10000, help="Number of documents to include in the subset"
     ),
     input_file: str = typer.Argument(
-        "data/fulldocs-new.trec", help="Path to the input TREC file"
+        "data/trec/fulldocs-new.trec", help="Path to the input TREC file"
     ),
     output_file: Optional[str] = typer.Argument(
         None, help="Path to the output TREC file"
@@ -105,7 +104,7 @@ def subset_topics(num_topics: int = 100):
         str: The filepath to the output subset file.
     """
     input_file = "train/queries.doctrain.tsv"
-    output_file = "proc_data/train/subset_queries.doctrain.tsv"
+    output_file = "proc_data/train_tsv/subset_queries.doctrain.tsv"
 
     topics = pd.read_csv(input_file, sep="\t", names=["qid", "query"])
     topics_subset = topics.head(num_topics)
@@ -126,7 +125,7 @@ def subset_qrels(topic_subset_file: str):
         str: The filepath to the output subset file.
     """
     input_file = "train/msmarco-doctrain-qrels.tsv"
-    output_file = "proc_data/train/subset_msmarco-doctrain-qrels.tsv"
+    output_file = "proc_data/train_tsv/subset_msmarco-doctrain-qrels.tsv"
 
     topics_subset = pd.read_csv(topic_subset_file, sep="\t", names=["qid", "query"])
     qrel_subset = pd.DataFrame()
@@ -193,11 +192,65 @@ def subset_train_data(
     return topic_output_file, qrels_output_file
 
 
-def create_overlapping_subsets(num_docs: int = 10000, num_topics: int = 10000):
-    # Create the MS MARCO subset
-    input_file = "data/trec/fulldocs-new.trec"
-    output_file = "proc_data/train_trec/subset_msmarco.trec"
+@app.command()
+def create_overlapping_subsets(
+    num_docs: int = typer.Option(10000, help="Number of documents in the subset"),
+    num_topics: int = typer.Option(10000, help="Number of topics in the subset"),
+    input_file: str = typer.Argument(
+        "data/trec/fulldocs-new.trec", help="Path to input file"
+    ),
+    output_file: str = typer.Argument(
+        "proc_data/train_trec/subset_msmarco.trec", help="Path to output file"
+    ),
+    topic_input_file: str = typer.Option(
+        "train/queries.doctrain.tsv", help="Path to topic input file"
+    ),
+    topic_output_file: str = typer.Option(
+        "proc_data/train_tsv/subset_queries.doctrain.tsv",
+        help="Path to topic output file",
+    ),
+    qrels_input_file: str = typer.Option(
+        "train/msmarco-doctrain-qrels.tsv",
+        help="Path to qrels input file",
+    ),
+    qrels_output_file: str = typer.Option(
+        "proc_data/train_tsv/subset_msmarco-doctrain-qrels.tsv",
+        help="Path to qrels output file",
+    ),
+):
+    """
+    Create overlapping subsets of TREC-formatted data for MS MARCO.
 
+    This function creates subsets of the MS MARCO dataset by selecting the first
+    `num_docs` documents from the input TREC file and selecting the first `num_topics`
+    topics from the input topic file. It then creates new topic
+    and qrels files containing only the selected topics and corresponding qrels.
+    The output TREC file and new topic/qrels files are written to disk.
+
+
+    Args:
+        num_docs (int):
+            Number of documents to include in the TREC subset (default: 10000).
+        num_topics (int):
+            Number of topics to include in the topic/qrels subset (default: 10000).
+        input_file (str):
+            Path to the input TREC file (default: 'data/fulldocs-new.trec').
+        output_file (str):
+            Path to the output TREC file (default: 'proc_data/trec/subset_msmarco.trec')
+        topic_input_file (str):
+            Path to the input topic file (default: 'train/queries.doctrain.tsv').
+        topic_output_file (str):
+            Path to the output topic fil (default: 'proc_data/train/subset_queries.tsv')
+        qrels_input_file (str):
+            Path to the input qrels file (default: 'train/msmarco_doctrain-qrels.tsv').
+        qrels_output_file (str):
+            Path to the output qrels file (default: 'proc_data/train/subset_qrels.tsv').
+
+    Returns:
+        None
+    """
+
+    # Create the MS MARCO subset
     doc_count = 0
     subset_lines = []
 
@@ -212,13 +265,6 @@ def create_overlapping_subsets(num_docs: int = 10000, num_topics: int = 10000):
     with open(output_file, "w") as f_out:
         f_out.writelines(subset_lines)
 
-    # Subset train data
-    topic_input_file = "train/queries.doctrain.tsv"
-    topic_output_file = "proc_data/train_tsv/subset_queries.doctrain.tsv"
-    qrels_input_file = "train/msmarco-doctrain-qrels.tsv"
-    qrels_output_file = "proc_data/train_tsv/subset_msmarco-doctrain-qrels.tsv"
-
-    # Subset topics
     topics = pd.read_csv(
         topic_input_file,
         sep="\t",
@@ -229,7 +275,6 @@ def create_overlapping_subsets(num_docs: int = 10000, num_topics: int = 10000):
     topics_subset = topics.head(num_topics)
     topics_subset.to_csv(topic_output_file, sep="\t", index=False, header=False)
 
-    # Subset qrels
     qrel_subset = pd.DataFrame(columns=["qid", "Q0", "docid", "rel"])
     qrels = pd.read_csv(
         qrels_input_file,
@@ -246,8 +291,11 @@ def create_overlapping_subsets(num_docs: int = 10000, num_topics: int = 10000):
 
     qrel_subset.to_csv(qrels_output_file, sep="\t", index=False, header=False)
 
+    # typer.echo(
+    #     f"Created subsets: {output_file}, {topic_output_file}, {qrels_output_file}"
+    # )
     return output_file, topic_output_file, qrels_output_file
 
 
 if __name__ == "__main__":
-    create_overlapping_subsets(num_docs=10000, num_topics=10000)
+    app()
