@@ -1,10 +1,13 @@
 import os
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, List, Any
-from tqdm import tqdm
-import typer
+from typing import Any, Dict, List
 
+import typer
+from tqdm import tqdm
+
+sys.path.append(".")
 os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-20-openjdk"
 app = typer.Typer()
 

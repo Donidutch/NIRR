@@ -6,7 +6,8 @@ import typer
 
 app = typer.Typer()
 
-os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-20-openjdk"
+# os.environ["JAVA_HOME"] = "/usr/lib/jvm/java-20-openjdk"
+
 
 @app.command()
 def build(
@@ -75,6 +76,7 @@ def build(
             --stemmer {stemmer_arg} \
             {keep_stopwords_arg} \
             {stopwords_file_arg} \
+            --storeContents \
         """
 
         print(f"Indexing {variant['name']}...")

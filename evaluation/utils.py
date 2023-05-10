@@ -3,10 +3,30 @@ import os
 import time
 from typing import IO, Any, Dict, List, Tuple
 
+import numpy as np
 import pandas as pd
 import pyterrier as pt
+import pytrec_eval
 from pyserini.index import IndexReader
 from pyserini.search import LuceneSearcher, SimpleSearcher
+
+
+def get_metric():
+    metrics = {
+        "ndcg",
+        "ndcg_cut_5",
+        "ndcg_cut_10",
+        "ndcg_cut_20",
+        "recip_rank",
+        "P_5",
+        "P_10",
+        "P_20",
+        "recall_5",
+        "recall_10",
+        "recall_20",
+        "MRR",
+    }
+    return metrics
 
 
 def index_dataset(path_to_dataset: str, index_path: str) -> None:
@@ -306,6 +326,33 @@ def create_run_file(topics: pd.DataFrame, model: Any) -> Dict[str, Dict[str, flo
             run_lines.append(line)
 
     return parse_run(run_lines)
+
+
+def evaluate_run(
+    run: Dict[str, Dict[str, int]], qrels: Dict[str, Dict[str, int]]
+) -> Dict[str, float]:
+    """
+    Evaluate a run using the specified relevance judgments.
+
+    Args:
+        run (Dict[str, Dict[str, int]]): Dictionary containing the document
+        rankings for each query.
+        qrels (Dict[str, Dict[str, int]]): Dictionary containing the relevance
+        judgments for each query.
+
+    Returns:
+        Dictionary containing the evaluation measures.
+    """
+    evaluator = pytrec_eval.RelevanceEvaluator(qrels, pytrec_eval.supported_measures)
+    results = evaluator.evaluate(run)
+    metric = get_metric()
+    measures = {
+        measure: np.mean(
+            [query_measures.get(measure, 0) for query_measures in results.values()]
+        )
+        for measure in metric
+    }
+    return measures
 
 
 def print_all_contents(index_path: str) -> None:
