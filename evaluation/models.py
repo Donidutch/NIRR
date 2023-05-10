@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 from pyserini.search import LuceneSearcher
-import utils
+from . import utils
 
 
 class Model(ABC):

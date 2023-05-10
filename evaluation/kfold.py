@@ -1,14 +1,13 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 import pandas as pd
+from . import utils
+from evaluation.models import BM25Model, LMModel
 from sklearn.model_selection import KFold
 from tqdm import tqdm
 
-from .models import BM25Model, LMModel
-from evaluation.utils import evaluate_run
-import evaluation.utils as utils
 
 
 def run_single_fold(
@@ -35,7 +34,7 @@ def run_single_fold(
 
         model.set_parameters(best_params)
         run = utils.create_run_file(test_topics, model)
-        measures = evaluate_run(run, qrels)  # type: ignore
+        measures = utils.evaluate_run(run, qrels)  # type: ignore
         measures["Time"] = model.get_search_time()
 
         return {
@@ -62,40 +61,16 @@ def process_single_model(futures, results_df):
     return results_df
 
 
-def create_summary(all_results, models):
-    df = pd.DataFrame(
-        all_results,
-        columns=[
-            "Index Variant",
-            "Ranking Model",
-            "NDCG",
-            "NDCG@5",
-            "NDCG@10",
-            "NDCG@20",
-            "Precision@5",
-            "Precision@10",
-            "Precision@20",
-            "Recall@5",
-            "Recall@10",
-            "Recall@20",
-            "MRR",
-            "Mean Time",
-        ],
-    )
-    df.to_csv("./output/results.csv", index=False, float_format="%.3f")
-    return df
-
-
 def run_cross_validation(
     index_variants: List[Dict[str, Any]],
     topic_file: str,
     qrels_file: str,
     tuning_measure: str = "ndcg_cut_10",
     k: int = 5,
-) -> pd.DataFrame:
+):
     models = {"BM25": BM25Model, "LM": LMModel}
     topics, qrels, qrels_df = utils.load_topics_and_qrels(topic_file, qrels_file)
-    topics = topics.iloc[:5000]
+    topics = topics.iloc[:2000]
     kf = KFold(n_splits=k)
 
     all_results = []
@@ -161,6 +136,4 @@ def run_cross_validation(
         summary = summary.reset_index()
         summary["Index Variant"] = index_variant["name"]
         all_results.extend(summary.to_dict(orient="records"))
-
-    summary_df = create_summary(all_results, models)
-    return summary_df
+    return all_results, models
