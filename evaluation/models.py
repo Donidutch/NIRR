@@ -99,8 +99,7 @@ class LMModel(Model):
             hyperparams found during tuning.
         """
         tuning_params = {
-            "mu": [500],
-            # "mu": [500, 1000, 1500, 2000],
+            "mu": [500, 1000, 1500, 2000],
         }
         best_measure = 0
         best_params = {"mu": 1000}
@@ -194,16 +193,9 @@ class BM25Model(Model):
             Tuple of best evaluation measure and best hyperparams found during tuning.
         """
         tuning_params = {
-            "k1": [1.0, 1.7],
-            "b": [0.75, 0.95],
+            "k1": [1.0, 1.2, 1.5, 1.7, 2.0],
+            "b": [0.65, 0.75, 0.85, 0.95],
         }
-
-        # tuning_params = {
-        #     "k1": [1.2,  1.7],
-        #     "b":  [0.75, 0.95],
-        #     # "k1": [1.0, 1.2, 1.5, 1.7, 2.0],
-        #     # "b": [0.65, 0.75, 0.85, 0.95],
-        # }
         best_measure = 0
         best_params = {"k1": 1.0, "b": 0.65}
 

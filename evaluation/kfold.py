@@ -35,7 +35,7 @@ def run_single_fold(
 
         model.set_parameters(best_params)
         run = utils.create_run_file(test_topics, model)
-        measures = evaluate_run(run, qrels)
+        measures = evaluate_run(run, qrels)  # type: ignore
         measures["Time"] = model.get_search_time()
 
         return {

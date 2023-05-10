@@ -3,9 +3,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Dict, List
 
-import numpy as np
 import pandas as pd
-import pytrec_eval
 from sklearn.model_selection import KFold
 from tqdm import tqdm
 from models import BM25Model, LMModel
@@ -14,48 +12,6 @@ import utils
 
 
 # logging.basicConfig(level=logging.ERROR)
-metrics = {
-    "ndcg",
-    "ndcg_cut_5",
-    "ndcg_cut_10",
-    "ndcg_cut_20",
-    "recip_rank",
-    "P_5",
-    "P_10",
-    "P_20",
-    "recall_5",
-    "recall_10",
-    "recall_20",
-    "MRR",
-}
-
-
-def evaluate_run(
-    run: Dict[str, Dict[str, int]], qrels: Dict[str, Dict[str, int]]
-) -> Dict[str, float]:
-    """
-    Evaluate a run using the specified relevance judgments.
-
-    Args:
-        run (Dict[str, Dict[str, int]]): Dictionary containing the document
-        rankings for each query.
-        qrels (Dict[str, Dict[str, int]]): Dictionary containing the relevance
-        judgments for each query.
-
-    Returns:
-        Dictionary containing the evaluation measures.
-    """
-    evaluator = pytrec_eval.RelevanceEvaluator(qrels, pytrec_eval.supported_measures)
-    results = evaluator.evaluate(run)
-
-    measures = {}
-    for measure in metrics:
-        query_measures = [
-            query_measures.get(measure, 0) for query_measures in results.values()
-        ]
-        measures[measure] = np.mean(query_measures).astype(float)
-    return measures
-
 
 logging.basicConfig(filename="cross_validation.log", level=logging.INFO)
 
@@ -123,7 +79,7 @@ def run_cross_validation(
 
                     model.set_parameters(best_params)
                     run = utils.create_run_file(test_topics, model)
-                    measures = evaluate_run(run, qrels)
+                    measures = utils.evaluate_run(run, qrels)  # type: ignore
 
                     measures["Time"] = model.get_search_time()
 
