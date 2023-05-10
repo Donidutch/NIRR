@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
@@ -27,6 +28,31 @@ metrics = {
     "recall_10",
     "recall_20",
 }
+
+
+def evaluate_run(
+    run: Dict[str, Dict[str, float]], qrels: Dict[str, Dict[str, int]]
+) -> Dict[str, float]:
+    """
+    Evaluate a run against a set of qrels using standard TREC evaluation measures.
+
+    Args:
+        run (Dict[str, Dict[str, float]]): A dict with search results for each query.
+        qrels (Dict[str, Dict[str, int]]): A dict containing qrels for each query.
+
+    Returns:
+        A dictionary containing the evaluation measures.
+    """
+    evaluator = pytrec_eval.RelevanceEvaluator(qrels, pytrec_eval.supported_measures)
+    results = evaluator.evaluate(run)
+
+    measures = {
+        measure: np.mean(
+            [query_measures.get(measure, 0) for query_measures in results.values()]
+        )
+        for measure in metrics
+    }
+    return measures  # type: ignore
 
 
 class Model(ABC):
@@ -104,7 +130,7 @@ class LMModel(Model):
         super().__init__(index_path)
         self.mu = 1000
         self.search_time = 0
-        self.k = 10
+        self.k = 50
         self.search_times = []
 
     def tune_parameters(self, train_topics, qrels, tuning_measure="ndcg_cut_10"):
@@ -121,7 +147,7 @@ class LMModel(Model):
             hyperparams found during tuning.
         """
         tuning_params = {
-            "mu": [500],
+            "mu": [500, 1000, 1500, 2000],
         }
         best_measure = 0
         best_params = {"mu": 1000}
@@ -200,7 +226,7 @@ class BM25Model(Model):
         self.b = 0.75
         self.search_time = 0
         self.search_times = []
-        self.k = 10
+        self.k = 50
 
     def tune_parameters(self, train_topics, qrels, tuning_measure="ndcg_cut_10"):
         """
@@ -215,8 +241,8 @@ class BM25Model(Model):
             Tuple of best evaluation measure and best hyperparams found during tuning.
         """
         tuning_params = {
-            "k1": [1.0, 1.7],
-            "b": [0.75, 0.95],
+            "k1": [1.0, 1.2, 1.5, 1.7, 2.0],
+            "b": [0.65, 0.75, 0.85, 0.95],
         }
         best_measure = 0
         best_params = {"k1": 1.0, "b": 0.65}
@@ -280,32 +306,7 @@ class BM25Model(Model):
         return self.search_time
 
 
-logging.basicConfig(filename="cross_validation.log", level=logging.INFO)
-
-
-def evaluate_run(
-    run: Dict[str, Dict[str, float]], qrels: Dict[str, Dict[str, int]]
-) -> Dict[str, float]:
-    """
-    Evaluate a run against a set of qrels using standard TREC evaluation measures.
-
-    Args:
-        run (Dict[str, Dict[str, float]]): A dict with search results for each query.
-        qrels (Dict[str, Dict[str, int]]): A dict containing qrels for each query.
-
-    Returns:
-        A dictionary containing the evaluation measures.
-    """
-    evaluator = pytrec_eval.RelevanceEvaluator(qrels, pytrec_eval.supported_measures)
-    results = evaluator.evaluate(run)
-
-    measures = {
-        measure: np.mean(
-            [query_measures.get(measure, 0) for query_measures in results.values()]
-        )
-        for measure in metrics
-    }
-    return measures  # type: ignore
+# logging.basicConfig(filename="cross_validation.log", level=logging.INFO)
 
 
 def run_cross_validation(
@@ -406,10 +407,6 @@ def run_cross_validation(
                         f"Error while training {model_name} on fold {i+1}: {str(e)}"
                     )
 
-        results_df.to_csv(
-            f"./output/{index_variant['name']}_cross_validation_results.csv",
-            index=False,
-        )
         print(f"Index Variant: {index_variant['name']}")
         results = []
         for model_name in models.keys():
@@ -452,20 +449,24 @@ def run_cross_validation(
             ],
         )
 
-        df.to_csv("./output/results.csv", index=False)
+        df.to_csv("./output/results.csv", index=False, float_format="%.4f")
 
         results_df.to_csv(
             f"./output/{index_variant['name']}_cross_validation_results.csv",
             index=False,
+            float_format="%.4f",
         )
 
 
 def main():
-    topic_file = "processed_data/train/subset_queries.doctrain.tsv"
-    qrels_file = "processed_data/train/subset_msmarco-doctrain-qrels.tsv"
+    if not os.path.exists("output"):
+        os.mkdir("output")
+
+    topic_file = "proc_data/train_tsv/subset_queries.doctrain.tsv"
+    qrels_file = "proc_data/train_tsv/subset_msmarco-doctrain-qrels.tsv"
     index_path = "./index/"
 
-    kfolds = 2
+    kfolds = 5
 
     index_variants = [
         "full_index",
