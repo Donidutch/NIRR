@@ -1,7 +1,7 @@
 import os
 
 os.system(
-    "python indexing/subset_data.py subset-train-data"
+    "python ./indexing/subset_data.py"
 )
 
 # Run index_opt.py command
