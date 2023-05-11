@@ -6,6 +6,8 @@ import numpy as np
 from pyserini.search import LuceneSearcher
 from . import utils
 
+logging.basicConfig(filename="evaluation.log", level=logging.INFO)
+
 
 class Model(ABC):
     """
@@ -18,7 +20,7 @@ class Model(ABC):
         Constructor for Model class.
 
         Args:
-            index_path (str): Path to the index directory.
+                        index_path (str): Path to the index directory.
         """
         self.searcher = LuceneSearcher(index_path)
 
@@ -28,12 +30,17 @@ class Model(ABC):
         Abstract method to tune the model's hyperparameters.
 
         Args:
-            train_topics (pd.DataFrame): Dataframe containing the training topics.
-            qrels (Dict): Dictionary containing the query relevance judgments.
-            tuning_measure (str): Evaluation metric to use for tuning the hyperparams.
+                        train_topics (pd.DataFrame): Dataframe containing the training
+                        topics.
+                        qrels (Dict): Dictionary containing the query
+                        relevance judgments.
+                        tuning_measure (str): Evaluation metric to use for tuning
+                        the hyperparams.
 
         Returns:
-            Tuple of best evaluation measure and best hyperparams found during tuning.
+                                Tuple of best evaluation measure and best 
+                                hyperparams found
+                        during tuning.
         """
         pass
 
@@ -43,7 +50,7 @@ class Model(ABC):
         Abstract method to set the model's hyperparameters.
 
         Args:
-            params (Dict): Dictionary containing the hyperparameters to set.
+                        params (Dict): Dictionary containing the hyperparameters to set.
         """
         pass
 
@@ -53,10 +60,10 @@ class Model(ABC):
         Abstract method to search the index for a given query.
 
         Args:
-            query (str): Query string.
+                        query (str): Query string.
 
         Returns:
-            Search results.
+                        Search results.
         """
         pass
 
@@ -77,7 +84,7 @@ class LMModel(Model):
         Initializes an LMModel object.
 
         Args:
-            index_path (str): Path to the index directory.
+                        index_path (str): Path to the index directory.
         """
         super().__init__(index_path)
         self.mu = 1000
@@ -90,13 +97,16 @@ class LMModel(Model):
         Tune the LM hyperparameter mu using the specified tuning_measure.
 
         Args:
-            train_topics (pd.DataFrame): DataFrame containing the training topics.
-            qrels (Dict): Dictionary containing the query relevance judgments.
-            tuning_measure (str): Evaluation metric to use for tuning the hyperparams.
+                        train_topics (pd.DataFrame): DataFrame containing the training
+                        topics.
+                        qrels (Dict): Dictionary containing the query 
+                        relevance judgments.
+                        tuning_measure (str): Evaluation metric to use for
+                        tuning the hyperparams.
 
         Returns:
-            Tuple of the best evaluation measure and the best
-            hyperparams found during tuning.
+                        Tuple of the best evaluation measure and the best
+                        hyperparams found during tuning.
         """
         tuning_params = {
             "mu": [500, 1000, 1500, 2000],
@@ -120,7 +130,7 @@ class LMModel(Model):
         Sets the LM hyperparameter mu.
 
         Args:
-            params (Dict): Dictionary containing the hyperparameters to set.
+                        params (Dict): Dictionary containing the hyperparameters to set.
         """
         self.mu = params["mu"]
         self.searcher.set_qld(self.mu)
@@ -130,11 +140,16 @@ class LMModel(Model):
         Searches the index for a given query using the LM retrieval model.
 
         Args:
-            query (str): Query string.
+                        query (str): Query string.
 
         Returns:
-            Search results.
+                        Search results.
         """
+
+        if not query:
+            raise ValueError("Query must not be None or an empty string.")
+            # Rest of the code...
+
         start_time = time.time()
         search_results = self.searcher.search(query, self.k)
         end_time = time.time()
@@ -147,7 +162,7 @@ class LMModel(Model):
         Computes the mean search time for the LM model.
 
         Returns:
-            The mean search time for the LM model.
+                        The mean search time for the LM model.
         """
         return np.mean(self.search_times)
 
@@ -156,7 +171,7 @@ class LMModel(Model):
         Returns the search time for the last query.
 
         Returns:
-            The search time for the last query.
+                        The search time for the last query.
         """
         return self.search_time
 
@@ -171,7 +186,7 @@ class BM25Model(Model):
         Constructor for BM25Model class.
 
         Args:
-            index_path (str): Path to the index directory.
+                        index_path (str): Path to the index directory.
         """
         super().__init__(index_path)
         self.k1 = 1.2
@@ -185,12 +200,16 @@ class BM25Model(Model):
         Tune the BM25 hyperparameters k1 and b using the specified tuning_measure.
 
         Args:
-            train_topics (pd.DataFrame): Dataframe containing the training topics.
-            qrels (Dict): Dictionary containing the query relevance judgments.
-            tuning_measure (str): Evaluation metric to use for tuning the hyperpars.
+                        train_topics (pd.DataFrame): Dataframe containing the training
+                        topics.
+                        qrels (Dict): Dictionary containing the query
+                        relevance judgments.
+                        tuning_measure (str): Evaluation metric to use for tuning the
+                        hyperpars.
 
         Returns:
-            Tuple of best evaluation measure and best hyperparams found during tuning.
+                        Tuple of best evaluation measure and best hyperparams found
+                        during tuning.
         """
         tuning_params = {
             "k1": [1.0, 1.2, 1.5, 1.7, 2.0],
@@ -228,7 +247,7 @@ class BM25Model(Model):
         Set the BM25 hyperparameters k1 and b.
 
         Args:
-            params (Dict): Dictionary containing the hyperparameters to set.
+                        params (Dict): Dictionary containing the hyperparameters to set.
         """
         self.k1 = params["k1"]
         self.b = params["b"]
@@ -239,11 +258,13 @@ class BM25Model(Model):
         Search the index for a given query using the BM25 retrieval model.
 
         Args:
-            query (str): Query string.
+                        query (str): Query string.
 
         Returns:
-            Search results.
+                        Search results.
         """
+        if not query:
+            raise ValueError("Query must not be None or an empty string.")
         start_time = time.time()
         search = self.searcher.search(query, self.k)
         end_time = time.time()
@@ -256,7 +277,7 @@ class BM25Model(Model):
         Calculate the mean search time across all queries.
 
         Returns:
-            Mean search time.
+                        Mean search time.
         """
         return np.mean(self.search_times)
 
@@ -265,6 +286,6 @@ class BM25Model(Model):
         Get the search time for the most recent query.
 
         Returns:
-            Search time.
+                        Search time.
         """
         return self.search_time

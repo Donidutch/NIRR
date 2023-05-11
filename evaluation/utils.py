@@ -301,7 +301,7 @@ def parse_run(lines: List[str]) -> Dict[str, Dict[str, float]]:
     return run
 
 
-def create_run_file(topics: pd.DataFrame, model: Any) -> Dict[str, Dict[str, float]]:
+def create_run_file1(topics: pd.DataFrame, model: Any) -> Dict[str, Dict[str, float]]:
     """
     Generates a run file for the given topics and model.
 
@@ -326,6 +326,20 @@ def create_run_file(topics: pd.DataFrame, model: Any) -> Dict[str, Dict[str, flo
             run_lines.append(line)
 
     return parse_run(run_lines)
+import pandas as pd
+
+def create_run_file(topics: pd.DataFrame, model: Any) -> Dict[str, Dict[str, float]]:
+    run_dict = {}
+    for topic_id, topic_text in topics.values:
+        if pd.isna(topic_text):  # Skip if topic_text is nan
+            continue
+        hits = model.search(topic_text)
+        run_dict[topic_id] = {}
+        for i, hit in enumerate(hits):
+            doc_id = hit.docid
+            score = hit.score
+            run_dict[topic_id][doc_id] = score
+    return run_dict
 
 
 def evaluate_run(

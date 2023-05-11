@@ -1,24 +1,42 @@
 import logging
-from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Dict, List
-
+from concurrent.futures import Future, ThreadPoolExecutor
+from typing import Any, Dict, List, Tuple
 import pandas as pd
-from . import utils
-from evaluation.models import BM25Model, LMModel
 from sklearn.model_selection import KFold
 from tqdm import tqdm
 
 
+from evaluation.models import BM25Model, LMModel
+
+from . import utils
+
+
 def run_single_fold(
-    train_topics,
-    test_topics,
-    qrels,
-    tuning_measure,
-    index_variant,
-    model_class,
-    model_name,
-    fold_index,
-):
+    train_topics: pd.DataFrame,
+    test_topics: pd.DataFrame,
+    qrels: Dict[str, Dict[str, int]],
+    tuning_measure: str,
+    index_variant: Dict[str, Any],
+    model_class: Any,
+    model_name: str,
+    fold_index: int,
+) -> Dict[str, Any]:
+    """
+    Train and evaluate a single model on one fold of the cross-validation.
+
+    Args:
+        train_topics: The training topic data for the current fold.
+        test_topics: The testing topic data for the current fold.
+        qrels: The ground truth relevance judgments.
+        tuning_measure: The measure used for tuning the ranking models.
+        index_variant: A dictionary containing information about the index variant.
+        model_class: The class of the ranking model.
+        model_name: The name of the ranking model.
+        fold_index: The index of the current fold.
+
+    Returns:
+        A dictionary containing the results of the evaluation.
+    """
     try:
         model = model_class(index_variant["path"])
         best_measure, best_params = model.tune_parameters(
@@ -29,7 +47,7 @@ def run_single_fold(
             logging.error(
                 f"No best param found for model {model_name} on fold {fold_index + 1}"
             )
-            return None
+            return None  # type: ignore
 
         model.set_parameters(best_params)
         run = utils.create_run_file(test_topics, model)
@@ -46,10 +64,23 @@ def run_single_fold(
         logging.error(
             f"Error while training {model_name} on fold {fold_index + 1}: {str(e)}"
         )
-        return None
+        return None  # type: ignore
 
 
-def process_single_model(futures, results_df):
+def process_single_model(
+    futures: List[Tuple[Any, Future, str, pd.DataFrame, int]], results_df: pd.DataFrame
+) -> pd.DataFrame:
+    """
+    Process the results of the evaluation for each ranking model and fold.
+
+    Args:
+        futures: A list of tuples containing the ranking model, the future object,
+                 the model name, the test topics, and the fold index.
+        results_df: The DataFrame containing the evaluation results.
+
+    Returns:
+        A DataFrame with the updated evaluation results.
+    """
     for model, future, model_name, test_topics, fold_index in tqdm(
         futures, total=len(futures), desc="Evaluating models", unit="model"
     ):
@@ -66,10 +97,23 @@ def run_cross_validation(
     qrels_file: str,
     tuning_measure: str = "ndcg_cut_10",
     k: int = 5,
-):
+) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    """
+    Run cross-validation for different ranking models on multiple index variants.
+
+    Args:
+        index_variants: A list of dictionaries containing information about index variants.
+        topic_file: The path to the topic file.
+        qrels_file: The path to the qrels file.
+        tuning_measure: The measure used for tuning the ranking models (default is "ndcg_cut_10").
+        k: The number of folds for cross-validation (default is 5).
+
+    Returns:
+        A tuple containing a list of dictionaries with the results of the cross-validation,
+        and a dictionary with the ranking models.
+    """
     models = {"BM25": BM25Model, "LM": LMModel}
     topics, qrels, qrels_df = utils.load_topics_and_qrels(topic_file, qrels_file)
-    topics = topics.iloc[:2000]
     kf = KFold(n_splits=k)
 
     all_results = []
@@ -134,4 +178,5 @@ def run_cross_validation(
         summary = summary.reset_index()
         summary["Index Variant"] = index_variant["name"]
         all_results.extend(summary.to_dict(orient="records"))
+
     return all_results, models

@@ -10,3 +10,6 @@
 /__pycache__
 /lort
 /evaluation/__pycache__
+/indexing/__pycache__
+/pyserini
+/evaluation.log
