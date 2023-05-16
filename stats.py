@@ -9,10 +9,9 @@ import numpy as np
 import pandas as pd
 import scienceplots  # noqa: F401
 import seaborn as sns
-from tqdm import tqdm
-
 from pyserini.index import IndexReader
 from pyserini.search import LuceneSearcher
+from tqdm import tqdm
 
 plt.style.use("science")
 np.set_printoptions(suppress=True, precision=4)
@@ -32,7 +31,7 @@ def extract_docs(file):
                 url_match = re.search(r"https?://\S+", content)
                 if url_match:
                     url = url_match.group()
-                    content = content[len(url) :].strip()
+                    content = content[len(url):].strip()
                 else:
                     url = None
                 yield {"docno": docno, "url": url, "content": content}

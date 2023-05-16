@@ -1,3 +1,4 @@
+import os
 from pyserini.search.lucene import LuceneSearcher
 from typing import List, Dict
 
@@ -43,7 +44,9 @@ class Model:
                 list of search results, where each result is represented
                 as a dictionary with 'docid' and 'score' keys.
         """
-        return self.searcher.batch_search(queries, qids, k=self.k)
+        return self.searcher.batch_search(
+            queries, qids, k=self.k, threads=os.cpu_count()
+        )
 
     def set_bm25_parameters(self, k1: float, b: float) -> None:
         """
