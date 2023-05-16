@@ -17,3 +17,7 @@ nbconvert
 nbformat
 python-terrier
 pyserini
+typer
+sklearn
+pytrec_eval
+pip install SciencePlots

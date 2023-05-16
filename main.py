@@ -1,45 +1,26 @@
+from typing import Optional
 import typer
 import os
-from indexing.subset_data import create_subsets
-from indexing.index import build_all_indexes
-from evaluation.rank_eval import rank_eval_main
 
 app = typer.Typer()
 
 
 @app.command()
-def create_subsets_cmd(
-    input_trec: str,
-    output_trec: str,
-    num_docs: int,
-    num_topics: int,
-    topic_input_file: str,
-    topic_output_file: str,
-    qrels_input_file: str,
-    qrels_output_file: str,
+def create_sample_queries_cmd(
+    sample_qid_path: str,
+    qrels_input_path: str,
+    queries_input_path: str,
+    queries_output_path: str,
+    qrels_output_path: str,
 ) -> None:
-    """
-    Command to create subsets of the input data.
+    from indexing.subset_data import create_sample_queries
 
-    Args:
-        input_trec: Path to the input TREC file.
-        output_trec: Path to the output TREC file.
-        num_docs: Number of documents to include in the subset.
-        num_topics: Number of topics to include in the subset.
-        topic_input_file: Path to the input topic file.
-        topic_output_file: Path to the output topic file.
-        qrels_input_file: Path to the input qrels file.
-        qrels_output_file: Path to the output qrels file.
-    """
-    create_subsets(
-        input_trec,
-        output_trec,
-        num_docs,
-        num_topics,
-        topic_input_file,
-        topic_output_file,
-        qrels_input_file,
-        qrels_output_file,
+    create_sample_queries(
+        sample_qid_path,
+        qrels_input_path,
+        queries_input_path,
+        queries_output_path,
+        qrels_output_path,
     )
 
 
@@ -48,95 +29,64 @@ def build_indexes_cmd(
     path_to_dataset: str,
     output_folder: str,
 ) -> None:
-    """
-    Command to build all indexes.
+    from indexing.index import build_all_indexes
 
-    Args:
-        path_to_dataset: Path to the dataset directory.
-        output_folder: Path to the output folder.
-    """
-    if not os.path.exists(output_folder):
+    if os.path.exists(output_folder):
+        print("Index folder already exists. Skipping indexing.")
+        print(output_folder)
+        return
+    else:
         os.mkdir(output_folder)
-    build_times = build_all_indexes(path_to_dataset, output_folder)
-    print("Build times:")
-    for name, build_time in build_times.items():
-        print(f"{name}: {build_time:.2f} seconds")
+        build_times = build_all_indexes(path_to_dataset, output_folder)
+        print("Build times:")
+        for name, build_time in build_times.items():
+            print(f"{name}: {build_time:.2f} seconds")
 
 
 @app.command()
 def run_rank_eval_cmd(
-    topic_file: str,
+    queries_file: str,
     qrels_file: str,
     index_path: str,
     kfolds: int,
     tuning_measure: str = "ndcg_cut_10",
 ) -> None:
-    """
-    Command to run the ranking evaluation.
+    from evaluation.rank_eval import rank_eval_main
 
-    Args:
-        topic_file: Path to the topic file.
-        qrels_file: Path to the qrels file.
-        index_path: Path to the index directory.
-        kfolds: Number of folds for cross-validation.
-        tuning_measure: The measure used for tuning the ranking models.
-    """
-    rank_eval_main(topic_file, qrels_file, index_path, kfolds, tuning_measure)  # type: ignore
+    rank_eval_main(queries_file, qrels_file, index_path, kfolds, tuning_measure)
 
 
 @app.command()
 def run_all_cmd(
-    num_docs: int,
-    num_topics: int,
-    input_trec: str,
-    output_trec: str,
-    topic_input_file: str,
-    topic_output_file: str,
-    qrels_input_file: str,
-    qrels_output_file: str,
-    path_to_dataset: str,
-    output_folder: str,
-    topic_file: str,
-    qrels_file: str,
-    index_path: str,
-    kfolds: int,
+    use_samples: bool,
+    queries_input_file: str = "data/train/queries.doctrain.tsv",
+    queries_output_file_sample: str = "data/train/queries.doctrain.sample.tsv",
+    qrels_input_file: str = "data/train/msmarco-doctrain-qrels.tsv",
+    qrels_output_file_sample: str = "data/train/msmarco-doctrain-qrels.sample.tsv",
+    path_to_dataset: str = "data/trec/",
+    indexes_path: str = "pyserini/indexes/",
+    kfolds: int = 2,
     tuning_measure: str = "ndcg_cut_10",
+    sample_qid_path: Optional[str] = None,
 ) -> None:
-    """
-    Command to run all commands (create subsets, build indexes,
-    and run ranking evaluation) sequentially.
+    if use_samples:
+        if not sample_qid_path:
+            raise ValueError("When using samples, 'sample_qid_path' cannot be None.")
+        create_sample_queries_cmd(
+            sample_qid_path,
+            qrels_input_file,
+            queries_input_file,
+            queries_output_file_sample,
+            qrels_output_file_sample,
+        )
+        queries_file = queries_output_file_sample
+        qrels_file = qrels_output_file_sample
+    else:
+        queries_file = queries_input_file
+        qrels_file = qrels_input_file
 
-    Args:
-        num_docs: Number of documents to include in the subset.
-        num_topics: Number of topics to include in the subset.
-        input_trec: Path to the input TREC file.
-        output_trec: Path to the output TREC file.
-        topic_input_file: Path to the input topic file.
-        topic_output_file: Path to the output topic file.
-        qrels_input_file: Path to the input qrels file.
-        qrels_output_file: Path to the output qrels file.
-        path_to_dataset: Path to the dataset directory.
-        output_folder: Path to the output folder.
-        topic_file: Path to the topic file.
-        qrels_file: Path to the qrels file.
-        index_path: Path to the index directory.
-        kfolds: Number of folds for cross-validation (default is 2).
-        tuning_measure: The measure used for tuning the ranking models
-        (default is "ndcg_cut_10").
-    """
-    create_subsets_cmd(
-        input_trec,
-        output_trec,
-        num_docs,
-        num_topics,
-        topic_input_file,
-        topic_output_file,
-        qrels_input_file,
-        qrels_output_file,
-    )
-    build_indexes_cmd(path_to_dataset, output_folder)
-
-    run_rank_eval_cmd(topic_file, qrels_file, index_path, kfolds, tuning_measure)
+    build_indexes_cmd(path_to_dataset, indexes_path)
+    run_rank_eval_cmd(queries_file, qrels_file, indexes_path, kfolds, tuning_measure)
 
 
 if __name__ == "__main__":

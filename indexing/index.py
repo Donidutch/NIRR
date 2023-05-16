@@ -2,6 +2,8 @@ import os
 import time
 from typing import Any, Dict
 
+import pandas as pd
+
 index_variants = [
     {
         "name": "full_index",
@@ -47,7 +49,7 @@ def build_index(
         --stemmer {stemmer_arg} \
         {keep_stopwords_arg} \
         {stopwords_file_arg} \
-        --storeRaw \
+        --storeContents \
     """
 
     print(f"Indexing {variant['name']}...")
@@ -64,4 +66,10 @@ def build_all_indexes(path_to_dataset: str, output_folder: str) -> Dict[str, flo
     for variant in index_variants:
         build_time = build_index(variant, path_to_dataset, output_folder)
         build_times[variant["name"]] = build_time
+
+    build_times_df = pd.DataFrame(
+        list(build_times.items()), columns=["Index_Variant", "Build_Time"]
+    )
+
+    build_times_df.to_csv("build_times.csv", index=False)
     return build_times
