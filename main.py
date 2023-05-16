@@ -1,6 +1,7 @@
 from typing import Optional
 import typer
 import os
+from evaluation.rank_eval import rank_eval_main  # Add this import
 
 app = typer.Typer()
 
@@ -51,9 +52,8 @@ def run_rank_eval_cmd(
     kfolds: int,
     tuning_measure: str = "ndcg_cut_10",
 ) -> None:
-    from evaluation.rank_eval import rank_eval_main
-
-    rank_eval_main(queries_file, qrels_file, index_path, kfolds, tuning_measure)
+    rank_eval_main(queries_file, qrels_file,
+                   index_path, kfolds, tuning_measure)
 
 
 @app.command()
@@ -71,7 +71,8 @@ def run_all_cmd(
 ) -> None:
     if use_samples:
         if not sample_qid_path:
-            raise ValueError("When using samples, 'sample_qid_path' cannot be None.")
+            raise ValueError(
+                "When using samples, 'sample_qid_path' cannot be None.")
         create_sample_queries_cmd(
             sample_qid_path,
             qrels_input_file,
@@ -86,7 +87,8 @@ def run_all_cmd(
         qrels_file = qrels_input_file
 
     build_indexes_cmd(path_to_dataset, indexes_path)
-    run_rank_eval_cmd(queries_file, qrels_file, indexes_path, kfolds, tuning_measure)
+    run_rank_eval_cmd(queries_file, qrels_file,
+                      indexes_path, kfolds, tuning_measure)
 
 
 if __name__ == "__main__":

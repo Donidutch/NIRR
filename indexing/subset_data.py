@@ -1,12 +1,22 @@
+from typing import Tuple, List
 import pandas as pd
 import re
 
 
-def remove_quotes(queries):
+def remove_quotes(queries: List[str]) -> List[str]:
+    """
+    Remove quotes from the given list of queries.
+
+    Args:
+        queries (List[str]): List of queries.
+
+    Returns:
+        List[str]: List of queries with quotes removed.
+    """
     cleaned_queries = []
     for query in queries:
         if isinstance(query, str):
-            cleaned_queries.append(query.replace('"', ''))
+            cleaned_queries.append(query.replace('"', ""))
         else:
             cleaned_queries.append(query)
     return cleaned_queries
@@ -19,6 +29,19 @@ def create_sample_queries(
     queries_output_path: str,
     qrels_output_path: str,
 ) -> None:
+    """
+    Create sample queries and corresponding qrels files based on the given inputs.
+
+    Args:
+        sample_qid_path (str): Path to the sample query IDs file.
+        qrels_input_path (str): Path to the original qrels file.
+        queries_input_path (str): Path to the original queries file.
+        queries_output_path (str): Path to write the output queries file.
+        qrels_output_path (str): Path to write the output qrels file.
+
+    Returns:
+        None
+    """
     sample_qid = pd.read_csv(sample_qid_path)
     qrels_df = pd.read_csv(
         qrels_input_path,
@@ -33,10 +56,10 @@ def create_sample_queries(
 
     queries_subset_df = queries_df[queries_df["qid"].isin(sample_qid.values[:, 0])]
     qrels_subset_df = qrels_df[qrels_df["qid"].isin(sample_qid.values[:, 0])]
-   
+
     queries_subset_df.to_csv(queries_output_path, sep=" ", index=False, header=False)
     qrels_subset_df.to_csv(qrels_output_path, sep=" ", index=False, header=False)
-  
+
 
 def create_subsets(
     input_trec: str,
@@ -47,7 +70,23 @@ def create_subsets(
     topic_output_file: str,
     qrels_input_file: str,
     qrels_output_file: str,
-):
+) -> Tuple[str, str, str]:
+    """
+    Create subsets of the input files based on the specified parameters.
+
+    Args:
+        input_trec (str): Path to the input TREC file.
+        output_trec (str): Path to write the output TREC file.
+        num_docs (int): Number of documents to include in the output TREC file.
+        num_topics (int): Number of topics to include in the output topic file.
+        topic_input_file (str): Path to the input topic file.
+        topic_output_file (str): Path to write the output topic file.
+        qrels_input_file (str): Path to the input qrels file.
+        qrels_output_file (str): Path to write the output qrels file.
+
+    Returns:
+        Tuple[str, str, str]: Paths to the output TREC file, topic file, and qrels file.
+    """
     # Create the MS MARCO subset
     input_file = input_trec
     output_file = output_trec

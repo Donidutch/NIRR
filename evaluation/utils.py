@@ -1,9 +1,23 @@
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple, Any
 
 import pandas as pd
 
 
-def create_run_file(model, queries, qids, run_name):
+def create_run_file(
+    model: Any, queries: List[str], qids: List[str], run_name: str
+) -> None:
+    """
+    Create a run file from the batch search results.
+
+    Args:
+        model (Any): The search model.
+        queries (List[str]): List of query strings.
+        qids (List[str]): List of query IDs.
+        run_name (str): Name of the run file.
+
+    Returns:
+        None
+    """
     batch_search_output = model.search(queries, qids)
     run = []
     for qid, search_results in batch_search_output.items():
@@ -15,7 +29,22 @@ def create_run_file(model, queries, qids, run_name):
             f.write(l + "\n")
 
 
-def create_run(model, queries, qids):
+def create_run(
+    model: Any, queries: List[str], qids: List[str]
+) -> Dict[str, Dict[str, float]]:
+    """
+    Create a run dictionary from the batch search results.
+
+    Args:
+        model (Any): The search model.
+        queries (List[str]): List of query strings.
+        qids (List[str]): List of query IDs.
+
+    Returns:
+        Dict[str, Dict[str, float]]: Dictionary containing the run results.
+            The keys are query IDs, and the values are dictionaries where
+            the keys are document IDs and the values are scores.
+    """
     batch_search_output = model.search(queries, qids)
 
     return {
@@ -60,7 +89,21 @@ def load_queries_and_qrels(
     return queries, qrel_dict  # type: ignore
 
 
-def parse_run(lines):
+def parse_run(lines: List[str]) -> Dict[str, Dict[str, float]]:
+    """
+    Parse the lines of a run file and return the run as a dictionary.
+
+    Args:
+        lines (List[str]): The lines of the run file.
+
+    Returns:
+        Dict[str, Dict[str, float]]: A dictionary representing the run,
+            where each query ID is mapped to a dictionary
+            containing document IDs as keys and corresponding scores as values.
+
+    Raises:
+        ValueError: If a duplicated document ID is found for a query.
+    """
     run = {}
 
     for line in lines:

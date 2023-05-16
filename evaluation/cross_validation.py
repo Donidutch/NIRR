@@ -5,9 +5,26 @@ from evaluation.models import Model
 from .evaluate import evaluate_run
 from .utils import load_queries_and_qrels
 import time
+from typing import Dict, List, Any, Union
+from tqdm import tqdm
 
 
-def create_run(model, queries, qids):
+def create_run(
+    model: Model, queries: List[str], qids: List[int]
+) -> Dict[str, Dict[str, float]]:
+    """
+    Create a run dictionary using the provided model, queries, and query IDs.
+
+    Args:
+        model Model: The model used for searching.
+        queries (List[str]): A list of queries.
+        qids (List[int]): A list of query IDs.
+
+    Returns:
+        Dict[str, Dict[str, float]]: A dictionary representing the run, where each
+            query ID is mapped to a dictionary containing document IDs
+            as keys and corresponding scores as values.
+    """
     qids = [str(item) for item in qids]
     batch_search_output = model.search(queries, qids)
     run = {}
@@ -17,14 +34,36 @@ def create_run(model, queries, qids):
 
 
 def tune_parameters(
-    model,
-    train_queries,
-    train_qids,
-    qrels,
-    fold,
-    model_type="bm25",
-    tuning_measure="ndcg_cut_10",
-):
+    model: Any,
+    train_queries: List[str],
+    train_qids: List[int],
+    qrels: Dict[str, Dict[str, int]],
+    fold: int,
+    model_type: str = "bm25",
+    tuning_measure: str = "ndcg_cut_10",
+) -> pd.DataFrame:
+    """
+    Tune the parameters of the model using the given training queries, query IDs,
+    relevance judgments, and fold.
+
+    Args:
+        model (Any): The model to be tuned.
+        train_queries (List[str]): A list of training queries.
+        train_qids (List[int]): A list of training query IDs.
+        qrels (Dict[str, Dict[str, int]]): A dictionary representing
+            relevance judgments, where each query ID is mapped
+            to a dictionary containing document IDs as keys
+            and relevance judgments as values.
+        fold (int): The fold number or identifier for the tuning.
+        model_type (str, optional): The type of model to tune. Defaults to "bm25".
+        tuning_measure (str, optional): The evaluation measure used for tuning.
+        Defaults to "ndcg_cut_10".
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the performance scores
+            for different parameter combinations, including the fold number,
+            model type, parameters, and score.
+    """
     if model_type == "bm25":
         tuning_params = {"k1": [0.9, 1.0, 1.1, 1.2], "b": [0.6, 0.7, 0.8, 0.9]}
         param_combinations = list(
@@ -64,13 +103,42 @@ def tune_parameters(
 
 
 def run_cross_validation(
-    queries_file,
-    qrels_file,
-    index_path,
-    kfolds,
-    model_type="bm25",
-    tuning_measure="ndcg_cut_10",
-):
+    queries_file: str,
+    qrels_file: str,
+    index_path: str,
+    kfolds: int,
+    model_type: str = "bm25",
+    tuning_measure: str = "ndcg_cut_10",
+) -> Dict[str, Union[str, Dict[str, float], pd.DataFrame, float]]:
+    """
+    Cross-validate a retrieval model using k-folds cross-validation.
+
+    Params:
+        queries_file: str
+            Path to the queries file
+        qrels_file: str
+            Path to the qrels file
+        index_path: str
+            Path to the index directory
+        kfolds: int
+            Number of folds to use in cross-validation
+        model_type: str
+            Type of retrieval model to use ("bm25" or "lm"). Default is "bm25".
+        tuning_measure: str
+            The measure to use for tuning ("ndcg_cut_10" or "map").
+            Default is "ndcg_cut_10".
+
+    Returns:
+        Dict[str, Union[str, Dict[str,float], pd.DataFrame, float]]:
+            A dictionary containing the following keys:
+            - best_config: The best configuration of the model as a string
+            - metrics: A dict of mean evaluation metrics for the best configuration
+            - mean_response_time: The mean response time for query processing in seconds
+            - results_df: A DataFrame containing each of the tuning parameter
+                combinations tested, along with their associated performance
+                score for the given tuning measure.
+
+    """
     queries, qrels = load_queries_and_qrels(queries_file, qrels_file)
     qrels = pd.read_csv(qrels_file, sep=" ", names=["qid", "Q0", "docid", "rel"])
     seed = 42
@@ -91,7 +159,7 @@ def run_cross_validation(
     K = 10
     metric = f"ndcg_cut_{K}"
 
-    for i in range(num_folds):
+    for i in tqdm(range(num_folds), desc="Folds", total=num_folds):
         validation_set = groups[i]
         validation_qrels = qrels.loc[qrels["qid"].isin(validation_set)]  # noqa: F841
 
@@ -155,7 +223,6 @@ def run_cross_validation(
     for metric in metrics:
         metrics[metric] /= num_folds
         mean_response_time = sum(response_times) / num_folds
-    print(best_config)
     return {
         "best_config": best_config,
         "metrics": metrics,

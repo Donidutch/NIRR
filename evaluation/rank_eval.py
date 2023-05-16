@@ -1,12 +1,21 @@
 import os
 import pandas as pd
-from typing import List, Optional, Tuple
-
+from typing import List, Tuple, Optional
 from evaluation.cross_validation import run_cross_validation
 from tqdm import tqdm
 
 
 def create_summary(all_results: List[Tuple], models: List[str]) -> pd.DataFrame:
+    """
+    Create a summary DataFrame from the list of results.
+
+    Args:
+        all_results (List[Tuple]): List of result tuples.
+        models (List[str]): List of model names.
+
+    Returns:
+        pd.DataFrame: Summary DataFrame containing the results.
+    """
     return pd.DataFrame(
         all_results,
         columns=[
@@ -32,7 +41,21 @@ def rank_eval_main(
     index_path: str,
     kfolds: Optional[int],
     tuning_measure: Optional[str] = "ndcg_cut_10",
-) -> pd.DataFrame:  # type: ignore
+) -> pd.DataFrame:
+    """
+    Main function for running the rank evaluation.
+
+    Args:
+        topic_file (str): Path to the topic file.
+        qrels_file (str): Path to the qrels file.
+        index_path (str): Path to the index directory.
+        kfolds (Optional[int]): Number of folds for cross-validation.
+        tuning_measure (Optional[str]): Tuning measure for selecting
+            the best configuration.
+
+    Returns:
+        pd.DataFrame: Summary DataFrame containing the evaluation results.
+    """
     if not os.path.exists("output"):
         os.mkdir("output")
 
@@ -95,18 +118,3 @@ def rank_eval_main(
             )
     summary_df = create_summary(all_results, ["lm", "bm25"])
     summary_df.to_csv("output/results.csv", index=False, float_format="%.3f")
-    return summary_df
-
-
-if __name__ == "__main__":
-    if not os.path.exists("output"):
-        os.mkdir("output")
-    queries_file = "data/proc_data/train_sample/sample_queries.tsv"
-    qrels_file = "data/proc_data/train_sample/sample_qrels.tsv"
-    kfolds = 2
-    output_folder = "pyserini/indexes/"
-
-    summary = rank_eval_main(
-        queries_file, qrels_file, output_folder, kfolds, tuning_measure="ndcg_cut_10"
-    )
-    summary.to_csv("output/results.csv", index=False, float_format="%.3f")
