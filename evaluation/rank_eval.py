@@ -67,9 +67,9 @@ def rank_eval_main(
     if index_variants is None:
         index_variants = [
             "full_index",
-            # "stopwords_removed",
-            # "stemming",
-            # "stopwords_removed_stemming",
+            "stopwords_removed",
+            "stemming",
+            "stopwords_removed_stemming",
         ]
 
     index_dict = []
