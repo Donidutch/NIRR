@@ -65,15 +65,15 @@ def tune_parameters(
             model type, parameters, and score.
     """
     if model_type == "bm25":
-        # tuning_params = {"k1": [0.9, 1.0, 1.1], "b": [0.6, 0.7, 0.8]}
+        tuning_params = {"k1": [0.9, 1.0, 1.1], "b": [0.6, 0.7, 0.8]}
         tuning_params = {"k1": [0.9], "b": [0.6]}
-        
+
         param_combinations = list(
             itertools.product(tuning_params["k1"], tuning_params["b"])
         )
         print(param_combinations)
     elif model_type == "lm":
-        tuning_params = {"mu": [1000]}
+        tuning_params = {"mu": [1000, 1500, 2000]}
         param_combinations = list(itertools.product(tuning_params["mu"]))
 
     params_performance = pd.DataFrame(columns=["fold", "model_type", "params", "score"])
