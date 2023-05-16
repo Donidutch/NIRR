@@ -65,7 +65,7 @@ def tune_parameters(
             model type, parameters, and score.
     """
     if model_type == "bm25":
-        tuning_params = {"k1": [0.9, 1.0, 1.1, 1.2], "b": [0.6, 0.7, 0.8, 0.9]}
+        tuning_params = {"k1": [0.9, 1.0, 1.1], "b": [0.6, 0.7, 0.8]}
         param_combinations = list(
             itertools.product(tuning_params["k1"], tuning_params["b"])
         )
