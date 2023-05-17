@@ -51,7 +51,7 @@
 \section{Dateset and Indexing}
 
 \subsection*{Dataset}
-We obtained the following statistics 
+We obtained the following statistics
 
 \begin{table}[htbp]
     \centering
@@ -60,17 +60,15 @@ We obtained the following statistics
         \toprule
         \multicolumn{1}{c}{\textbf{Statistic}} & \multicolumn{1}{c}{\textbf{Documents}} & \multicolumn{1}{c}{\textbf{Queries}} \\
         \midrule
-        Total   & 3,213,835 & 367,013 \\
-        Min     & 0         & 1 \\
-        Max     & 2,064,096 & 38 \\
-        Median  & 3,577     & 6 \\
-        Average & 6,996.61  & 5.95 \\
+        Total                                  & 3,213,835                              & 367,013                              \\
+        Min                                    & 0                                      & 1                                    \\
+        Max                                    & 2,064,096                              & 38                                   \\
+        Median                                 & 3,577                                  & 6                                    \\
+        Average                                & 6,996.61                               & 5.95                                 \\
         \bottomrule
     \end{tabular}
     \caption{Document and Query Statistics}
 \end{table}
-
-
 
 The statistics provided shed illuminating light on the key
 characteristics of the MS MARCO dataset, which is composed of over
@@ -129,27 +127,26 @@ the field of information retrieval.
 \begin{figure}[ht!]
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{media/doc_lengths_histogram_log_x.png}
+        \includegraphics[width=\textwidth]{../media/doc_lengths_histogram_log_x.png}
         \caption{Histogram of document lengths (log x-axis)}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{media/query_lengths_histogram.png}
+        \includegraphics[width=\textwidth]{../media/query_lengths_histogram.png}
         \caption{Histogram of query lengths}
     \end{subfigure}
     \caption{Histograms of document and query lengths}
 \end{figure}
 
-
 \begin{figure}[ht!]
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{media/doc_lengths_boxplot_log_y.png}
+        \includegraphics[width=\textwidth]{../media/doc_lengths_boxplot_log_y.png}
         \caption{Box plot of document lengths (log y-axis)}
-    \end{subfigure}
+    \end{subfigure} 
     \hfill
     \begin{subfigure}[b]{0.45\textwidth}
-        \includegraphics[width=\textwidth]{media/query_lengths_boxplot.png}
+        \includegraphics[width=\textwidth]{../media/query_lengths_boxplot.png}
         \caption{Box plot of query lengths}
     \end{subfigure}
     \caption{Boxplots of document and query lengths}
@@ -172,15 +169,14 @@ stemming.
         \toprule
         \multicolumn{1}{c}{\textbf{Statistic}} & \multicolumn{1}{c}{\textbf{Documents}} & \multicolumn{1}{c}{\textbf{Queries}} \\
         \midrule
-        Total   & 3,213,835 & 367,013 \\
-        Min     & 0         & 1 \\
-        Max     & 2,064,096 & 38 \\
-        Median  & 3,577     & 6 \\
-        Average & 6,996.61  & 5.95 \\
+        Total                                  & 3,213,835                              & 367,013                              \\
+        Min                                    & 0                                      & 1                                    \\
+        Max                                    & 2,064,096                              & 38                                   \\
+        Median                                 & 3,577                                  & 6                                    \\
+        Average                                & 6,996.61                               & 5.95                                 \\
         \bottomrule
     \end{tabular}
 \end{table}
-
 
 We obtained the statistics for each index as shown in table
 \ref{tab:mytable}.
@@ -267,7 +263,7 @@ performance. It not only helped us identify the optimal configuration
 but also improved our understanding of how these models behave under
 different settings.
 
-We statistics for each of the four indexing and models can be seen in the table 
+We statistics for each of the four indexing and models can be seen in the table
 \ref{tab:performance}.
 
 \begin{table*}[htbp]
@@ -289,9 +285,6 @@ We statistics for each of the four indexing and models can be seen in the table
     \caption{Retrieval Model Performance}
     \label{tab:performance}
 \end{table*}
-
-
-
 
 Using \ref{tab:performance},we conducted a comprehensive analysis and concluded that the
 combination of stemming and the BM25 model is the most effective for
@@ -345,7 +338,6 @@ The combination of stemming and BM25 proved to be the most effective
 in our setting. However, the choice of techniques and models largely
 depends on the specific characteristics of the data and the task at
 hand.
-
 
 \end{document}
 
