@@ -28,8 +28,7 @@ def extract_docs(file):
                 content = []
             elif line.startswith("</TEXT>"):
                 content = "\n".join(content)
-                url_match = re.search(r"https?://\S+", content)
-                if url_match:
+                if url_match := re.search(r"https?://\S+", content):
                     url = url_match.group()
                     content = content[len(url) :].strip()
                 else:
@@ -97,9 +96,6 @@ print(summary_table)
 
 doc_df = pd.DataFrame(doc_lengths_array.T, columns=["doc_length"])
 docs = doc_df["doc_length"].values
-doc_df
-summary_table
-doc_df
 
 
 plt.hist(
@@ -149,13 +145,12 @@ def count_unique_terms(index_path: str) -> int:
         int: The number of unique terms in the index.
     """
     reader = IndexReader(index_path)
-    num_unique_terms = 0
-
-    # Iterate over all terms in the index
-    for _ in tqdm(reader.terms(), desc="Counting unique terms", unit="term"):
-        num_unique_terms += 1
-
-    return num_unique_terms
+    return sum(
+        1
+        for _ in tqdm(
+            reader.terms(), desc="Counting unique terms", unit="term"
+        )
+    )
 
 
 def measure_query_time(searcher: LuceneSearcher, query: str) -> float:
@@ -186,9 +181,7 @@ def measure_average_query_time(searcher: LuceneSearcher, queries: List[str]) -> 
     Returns:
         float : The average time taken to perform the search.
     """
-    total_time = 0
-    for query in queries:
-        total_time += measure_query_time(searcher, query)
+    total_time = sum(measure_query_time(searcher, query) for query in queries)
     return total_time / len(queries)
 
 
@@ -251,25 +244,25 @@ output_folder = "pyserini/indexes/"
 index_variants = [
     {
         "name": "full_index",
-        "index_path": output_folder + "full_index/",
+        "index_path": f"{output_folder}full_index/",
         "stopwords": False,
         "stemming": False,
     },
     {
         "name": "stopwords_removed",
-        "index_path": output_folder + "stopwords_removed/",
+        "index_path": f"{output_folder}stopwords_removed/",
         "stopwords": True,
         "stemming": False,
     },
     {
         "name": "stemming/",
-        "index_path": output_folder + "stemming/",
+        "index_path": f"{output_folder}stemming/",
         "stopwords": False,
         "stemming": True,
     },
     {
         "name": "stopwords_removed_stemming",
-        "index_path": output_folder + "stopwords_removed_stemming/",
+        "index_path": f"{output_folder}stopwords_removed_stemming/",
         "stopwords": True,
         "stemming": True,
     },

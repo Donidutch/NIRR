@@ -1,12 +1,16 @@
+import itertools
+import time
+from typing import Any, Dict, List, Union
+
 import numpy as np
 import pandas as pd
-import itertools
+from tqdm.auto import tqdm
+from evaluation.metrics import get_metric
+
 from evaluation.models import Model
+
 from .evaluate import evaluate_run
 from .utils import load_queries_and_qrels
-import time
-from typing import Dict, List, Any, Union
-from tqdm import tqdm
 
 
 def create_run(
@@ -25,7 +29,8 @@ def create_run(
             query ID is mapped to a dictionary containing document IDs
             as keys and corresponding scores as values.
     """
-
+    if isinstance(qids, list) and isinstance(qids[0], int):
+        qids = [str(qid) for qid in qids]
     batch_search_output = model.search(queries, qids)
     run = {}
     for qid, search_results in batch_search_output.items():
@@ -71,11 +76,10 @@ def tune_parameters(
         param_combinations = list(
             itertools.product(tuning_params["k1"], tuning_params["b"])
         )
-        print(param_combinations)
+
     elif model_type == "lm":
         tuning_params = {"mu": [1000, 1500, 2000]}
         param_combinations = list(itertools.product(tuning_params["mu"]))
-        print(param_combinations)
 
     params_performance = pd.DataFrame(columns=["fold", "model_type", "params", "score"])
 
@@ -106,8 +110,8 @@ def tune_parameters(
             mu = params[0]
             model.set_qld_parameters(mu)
             params_str = f"mu: {mu}"
-
-        run = create_run(model, train_queries, list(map(str, train_qids)))
+        qids = [str(qid) for qid in train_qids]
+        run = create_run(model, train_queries, qids)
         measures = evaluate_run(run, qrels, metric=tuning_measure)
         params_str = str(params)
 
@@ -125,6 +129,21 @@ def tune_parameters(
     return params_performance
 
 
+def set_model_config(model, model_type: str, best_config):
+    if model_type == "bm25":
+        if isinstance(best_config, tuple) and len(best_config) == 2:
+            k1, b = best_config
+        else:
+            raise ValueError("Invalid value for best_config")
+        model.set_bm25_parameters(k1, b)
+    elif model_type == "lm":
+        if isinstance(best_config, int):
+            mu = best_config
+        else:
+            raise ValueError("Invalid value for best_config")
+        model.set_qld_parameters(mu)
+
+
 def run_cross_validation(
     queries_file: str,
     qrels_file: str,
@@ -133,35 +152,6 @@ def run_cross_validation(
     model_type: str = "bm25",
     tuning_measure: str = "ndcg_cut_10",
 ) -> Dict[str, Union[str, Dict[str, float], pd.DataFrame, float]]:
-    """
-    Cross-validate a retrieval model using k-folds cross-validation.
-
-    Params:
-        queries_file: str
-            Path to the queries file
-        qrels_file: str
-            Path to the qrels file
-        index_path: str
-            Path to the index directory
-        kfolds: int
-            Number of folds to use in cross-validation
-        model_type: str
-            Type of retrieval model to use ("bm25" or "lm"). Default is "bm25".
-        tuning_measure: str
-            The measure to use for tuning ("ndcg_cut_10" or "map").
-            Default is "ndcg_cut_10".
-
-    Returns:
-        Dict[str, Union[str, Dict[str,float], pd.DataFrame, float]]:
-            A dictionary containing the following keys:
-            - best_config: The best configuration of the model as a string
-            - metrics: A dict of mean evaluation metrics for the best configuration
-            - mean_response_time: The mean response time for query processing in seconds
-            - results_df: A DataFrame containing each of the tuning parameter
-                combinations tested, along with their associated performance
-                score for the given tuning measure.
-
-    """
     queries, qrels = load_queries_and_qrels(queries_file, qrels_file)
     qrels = pd.read_csv(qrels_file, sep=" ", names=["qid", "Q0", "docid", "rel"])
     seed = 42
@@ -170,22 +160,21 @@ def run_cross_validation(
     rng = np.random.default_rng(seed)
     unique_qids = queries["qid"].unique()
     choice = rng.choice(range(num_folds), size=len(unique_qids))
-    groups = {}
+    groups = {c: [] for c in range(num_folds)}
     for c, qid in zip(choice, unique_qids):
-        if c not in groups:
-            groups[c] = [qid]
-        else:
-            groups[c].append(qid)
+        groups[c].append(qid)
+
     results_df = pd.DataFrame(columns=["fold", "model_type", "params", "score"])
     model = Model(index_path)
 
     K = 10
     metric = f"ndcg_cut_{K}"
 
+    metrics = get_metric(get_all_metrics=True)
+    response_times = []
+
     for i in tqdm(range(num_folds), desc="Folds", total=num_folds):
         validation_set = groups[i]
-        validation_qrels = qrels.loc[qrels["qid"].isin(validation_set)]  # noqa: F841
-
         training_set = set(unique_qids).difference(set(validation_set))
         training_qrels = qrels.loc[qrels["qid"].isin(training_set)]
         train_queries = [
@@ -193,7 +182,7 @@ def run_cross_validation(
             for qid in training_set
         ]
         train_qids = list(training_set)
-
+        train_qids_str = [str(qid) for qid in train_qids]
         fold_params_performance = tune_parameters(
             model,
             train_queries,
@@ -206,56 +195,29 @@ def run_cross_validation(
 
         results_df = pd.concat([results_df, fold_params_performance], ignore_index=True)
 
-    # Find the best configuration
-    best_config = results_df.groupby("params")["score"].mean().idxmax()
-    results_df["best_config"] = best_config
-
-    # Calculate evaluation metrics and mean response time for the best configuration
-    metrics = {
-        "ndcg": 0,
-        "recip_rank": 0,
-        "P_5": 0,
-        "P_10": 0,
-        "P_20": 0,
-        "recall_5": 0,
-        "recall_10": 0,
-        "recall_20": 0,
-    }
-    response_times = []
-    for _ in range(num_folds):
-    # Set the best configuration
+        best_config = results_df.groupby("params")["score"].mean().idxmax()
+        results_df["best_config"] = best_config
         if model_type == "bm25":
-            if isinstance(best_config, int):
-                k1 = float(best_config)
-                b = 0.6
-            elif isinstance(best_config, str):
-                k1, b = [float(x.split(": ")[1]) for x in best_config.split(", ")]
-            else:
-                raise ValueError("Invalid value for best_config")
-            model.set_bm25_parameters(k1, b)
+            best_config = tuple(map(float, best_config[1:-1].split(", ")))
         elif model_type == "lm":
-            if isinstance(best_config, int):
-                mu = best_config
-            elif isinstance(best_config, str):
-                mu = int(float(best_config[4:-1]))
-            else:
-                raise ValueError("Invalid value for best_config")
-            model.set_qld_parameters(mu)
+            best_config = int(float(best_config.strip("()").split(",")[0]))
+
+        set_model_config(model, model_type, best_config)
 
         start_time = time.time()
-        run = create_run(model, train_queries, train_qids)
+
+        run = create_run(model, train_queries, train_qids_str)
         response_time = (time.time() - start_time) / len(train_qids)
         response_times.append(response_time)
 
-    # Calculate the metrics for this fold
-    measures = evaluate_run(run, training_qrels, metric=list(metrics.keys()))
-    for metric in metrics:
-        metrics[metric] += measures[metric]
+        measures = evaluate_run(run, training_qrels, metric=list(metrics.keys()))
+        for metric in metrics:
+            metrics[metric] += measures[metric]
 
-    # Calculate the mean metrics and response time
     for metric in metrics:
         metrics[metric] /= num_folds
-        mean_response_time = sum(response_times) / num_folds
+    mean_response_time = sum(response_times) / num_folds
+
     return {
         "best_config": best_config,
         "metrics": metrics,
