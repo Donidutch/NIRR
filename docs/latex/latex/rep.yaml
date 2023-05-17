@@ -1,0 +1,97 @@
+# Define the regular expression to replace double-dollar signs with LaTeX equation environment
+replacements:
+  - substitution: |-
+      s/\$\$(.*?)\$\$/\\begin{equation}$1\\end{equation}/sgx
+
+# Modify line breaks and whitespace
+modifyLineBreaks:
+  textWrapOptions:
+    columns: 70
+    multipleSpacesToSingle: true
+    removeBlockLineBreaks: true
+    when: before
+  replaceTabs:
+    with: ' '
+    when: before
+  collapseSpaces:
+    around: all
+    when: before
+
+# Define formatting options for output
+format:
+  wrap: 70
+  indent: '    '
+  singleLine: true
+
+# Define substitutions and environments for LaTeX output
+latex:
+  substitutions:
+    - symbol: '$$'
+      replace: 'begin{equation}'
+    - symbol: '$'
+      replace: '$'
+    - symbol: '{'
+      escape: '\\{'
+    - symbol: '}'
+      escape: '\\}'
+    - symbol: '_'
+      escape: '\\_'
+    - symbol: '^'
+      escape: '\\^{}'
+    - symbol: '&'
+      escape: '\\&'
+    - symbol: '%'
+      escape: '\\%'
+    - symbol: '~'
+      replace: '\\textasciitilde{}'
+    - symbol: '>'
+      replace: '\\textgreater{}'
+    - symbol: '<'
+      replace: '\\textless{}'
+  
+  environments:
+    - name: equation
+      begin: '\\begin{equation}'
+      end: '\\end{equation}'
+    - name: align
+      begin: '\\begin{align}'
+      end: '\\end{align}'
+    - name: gather
+      begin: '\\begin{gather}'
+      end: '\\end{gather}'
+    - name: matrix
+      begin: '\\begin{matrix}'
+      end: '\\end{matrix}'
+    
+    # Remove tabs, newlines, and extra spaces
+    - name: my-environment
+      begin: '\\begin{my-environment} '
+      end: ' \\end{my-environment}'
+      options:
+        whitespace: compact
+        textwidth: 70
+    
+  sections:
+    - name: section
+      begin: '\section{'
+      end: '}'
+    - name: subsection
+      begin: '\subsection{'
+      end: '}'
+    - name: subsubsection
+      begin: '\subsubsection{'
+      end: '}'
+    - name: paragraph
+      begin: '\paragraph{'
+      end: '}'
+    - name: subparagraph
+      begin: '\subparagraph{'
+      end: '}'
+    
+    # Remove tabs, newlines, and extra spaces
+    - name: my-section
+      begin: '\section{ '
+      end: ' }'
+      options:
+        whitespace: compact
+        textwidth: 70
