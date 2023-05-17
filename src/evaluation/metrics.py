@@ -9,8 +9,8 @@ def get_metric(
     the given metric_name.
 
     Args:
-        metric_name (Optional[str]): The name of a specific metric to retrieve. If provided,
-            the value of the specified metric is returned.
+        metric_name (Optional[str]): The name of a specific metric to retrieve.
+            If provided, the value of the specified metric is returned.
         get_all_metrics (bool): If True, returns a dictionary of all available metrics.
             Overrides the metric_name argument.
 
