@@ -8,6 +8,7 @@ from evaluation.metrics import get_metric
 from evaluation.models import Model
 import importlib
 
+
 def create_run(
     model: Model, queries: List[str], qids: List[str]
 ) -> Dict[str, Dict[str, int]]:
@@ -93,14 +94,14 @@ def run_model_on_folds(
     for i in tqdm(range(num_folds), desc="Folds", total=num_folds):
         kfold_preparation = importlib.import_module("evaluation.kfold_preparation")
         get_training_data = kfold_preparation.get_training_data
-        
+
         train_queries, train_qids, training_qrels, train_qids_str = get_training_data(
             groups, i, queries, qrels, unique_qids
         )
-        
+
         model_tuning = importlib.import_module("evaluation.model_tuning")
         tune_and_set_parameters = model_tuning.tune_and_set_parameters
-        
+
         fold_params_performance, best_config = tune_and_set_parameters(
             model,
             train_queries,
@@ -113,11 +114,11 @@ def run_model_on_folds(
         )
 
         results_df = pd.concat([results_df, fold_params_performance], ignore_index=True)
-        
+
         model_evaluation = importlib.import_module("evaluation.model_evaluation")
         run_and_evaluate_model = model_evaluation.run_and_evaluate_model
         update_metrics = model_evaluation.update_metrics
-        
+
         response_time, measures = run_and_evaluate_model(
             model, train_queries, train_qids_str, training_qrels, metrics
         )
@@ -126,6 +127,7 @@ def run_model_on_folds(
         metrics = update_metrics(metrics, measures)
 
     return metrics, response_times, results_df, str(best_config)
+
 
 def run_cross_validation(
     queries_file: str,
