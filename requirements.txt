@@ -1,5 +1,4 @@
 numpy
-scipy
 pandas
 torch
 faiss-cpu
@@ -20,4 +19,5 @@ pyserini
 typer
 sklearn
 pytrec_eval
-pip install SciencePlots
+scienceplots
+tqdm

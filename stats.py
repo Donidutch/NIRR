@@ -31,7 +31,7 @@ def extract_docs(file):
                 url_match = re.search(r"https?://\S+", content)
                 if url_match:
                     url = url_match.group()
-                    content = content[len(url):].strip()
+                    content = content[len(url) :].strip()
                 else:
                     url = None
                 yield {"docno": docno, "url": url, "content": content}

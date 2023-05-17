@@ -1,7 +1,7 @@
 from typing import Optional
 import typer
 import os
-from evaluation.rank_eval import rank_eval_main  # Add this import
+from evaluation.rank_eval import rank_eval_main
 
 app = typer.Typer()
 

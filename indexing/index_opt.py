@@ -2,6 +2,7 @@ import os
 import time
 from typing import Any, Dict
 from concurrent.futures import ThreadPoolExecutor
+
 index_variants = [
     {
         "name": "full_index",
