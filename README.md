@@ -1,9 +1,9 @@
 <h1 align="center">Information Retrieval Evaluation Project</h1>
 <p align="center">
-  <img alt="Github top language" src="https://img.shields.io/github/languages/top/{{YOUR_GITHUB_USERNAME}}/nirproject?color=56BEB8">
-  <img alt="Github language count" src="https://img.shields.io/github/languages/count/{{YOUR_GITHUB_USERNAME}}/nirproject?color=56BEB8">
-  <img alt="Repository size" src="https://img.shields.io/github/repo-size/{{YOUR_GITHUB_USERNAME}}/nirproject?color=56BEB8">
-  <img alt="License" src="https://img.shields.io/github/license/{{YOUR_GITHUB_USERNAME}}/nirproject?color=56BEB8">
+  <img alt="Github top language" src="https://img.shields.io/github/languages/top/{{Donidutch}}/NIR?color=56BEB8">
+  <img alt="Github language count" src="https://img.shields.io/github/languages/count/{{Donidutch}}/NIR?color=56BEB8">
+  <img alt="Repository size" src="https://img.shields.io/github/repo-size/{{Donidutch}}/NIR?color=56BEB8">
+  <img alt="License" src="https://img.shields.io/github/license/{{Donidutch}}/NIR?color=56BEB8">
 </p>
 <p align="center">
   <a href="#dart-about">About</a> &#xa0; | &#xa0; 
