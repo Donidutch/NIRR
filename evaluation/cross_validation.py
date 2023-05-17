@@ -101,31 +101,12 @@ def tune_parameters(
 
     for params in param_combinations:
         if model_type == "bm25":
-            if (
-                isinstance(params, tuple)
-                and len(params) == 1
-                and isinstance(params[0], int)
-            ):
-                k1 = params[0]
-                b = None
-            elif (
-                isinstance(params, tuple)
-                and len(params) == 2
-                and isinstance(params[0], float)
-                and isinstance(params[1], float)
-            ):
-                k1, b = params
-            else:
-                raise TypeError(
-                    "params should be a tuple of either (int,) or (float, float)"
-                )
-
-            model.set_bm25_parameters(k1, b)
-            params_str = f"k1: {k1}, b: {b}"
+            model.set_parameters(model_type, {"k1": params[0], "b": params[1]})
         elif model_type == "lm":
-            mu = params[0]
-            model.set_qld_parameters(mu)
-            params_str = f"mu: {mu}"
+            model.set_parameters(model_type, {"mu": params[0]})
+        else:
+            raise ValueError(f"Unknown model type: {model_type}")
+
         qids = [str(qid) for qid in train_qids]
         run = create_run(model, train_queries, qids)
         measures = evaluate_run(run, qrels, metric=tuning_measure)
@@ -142,7 +123,9 @@ def tune_parameters(
 
         params_performance = pd.concat([params_performance, new_row], ignore_index=True)
 
-    return params_performance
+    return params_performance 
+
+
 
 
 def set_model_config(model, model_type: str, best_config):

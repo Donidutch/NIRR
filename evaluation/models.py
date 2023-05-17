@@ -1,6 +1,6 @@
 import os
 from pyserini.search.lucene import LuceneSearcher
-from typing import List, Dict
+from typing import List, Dict, Union
 
 
 class Model:
@@ -67,3 +67,20 @@ class Model:
             mu (int): The mu parameter value.
         """
         self.searcher.set_qld(mu)
+
+    def set_parameters(
+        self, model_type: str, parameters: Dict[str, Union[int, float]]
+    ) -> None:
+        """
+        Set the parameters for the ranking model.
+
+        Args:
+            model_type (str): The type of model. Either "bm25" or "lm".
+            parameters (Dict[str, Union[int, float]]): The parameters for the model.
+        """
+        if model_type == "bm25":
+            self.set_bm25_parameters(parameters["k1"], parameters["b"])
+        elif model_type == "lm":
+            self.set_qld_parameters(parameters["mu"])
+        else:
+            raise ValueError(f"Unknown model type: {model_type}")
