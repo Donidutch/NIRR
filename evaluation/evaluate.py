@@ -39,11 +39,11 @@ def evaluate_run(
     Evaluate a run using the specified relevance judgments.
 
     Args:
-        run (List[Dict[str, Dict[str, int]]]): List containing the document rankings 
+        run (List[Dict[str, Dict[str, int]]]): List containing the document rankings
             for each query.
-        qrels_df (Union[Dict[str, Dict[str, int]], pd.DataFrame]): Dictionary or 
+        qrels_df (Union[Dict[str, Dict[str, int]], pd.DataFrame]): Dictionary or
             DataFrame containing the relevance judgments for each query.
-        metric (Union[str, set], optional): The evaluation metric(s) to be used. 
+        metric (Union[str, set], optional): The evaluation metric(s) to be used.
             Defaults to None.
 
     Returns:
@@ -54,7 +54,6 @@ def evaluate_run(
         metric = {"ndcg_cut_10"}
     elif isinstance(metric, str):
         metric = {metric}
-
     qrels = create_dic(qrels_df) if isinstance(qrels_df, pd.DataFrame) else qrels_df
 
     evaluator = pytrec_eval.RelevanceEvaluator(qrels, metric)

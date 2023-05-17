@@ -146,10 +146,7 @@ def count_unique_terms(index_path: str) -> int:
     """
     reader = IndexReader(index_path)
     return sum(
-        1
-        for _ in tqdm(
-            reader.terms(), desc="Counting unique terms", unit="term"
-        )
+        1 for _ in tqdm(reader.terms(), desc="Counting unique terms", unit="term")
     )
 
 

@@ -10,7 +10,7 @@ class Model:
 
         Args:
             index_path (str): The path to the Lucene index.
-            model_type (str, optional): The ranking model to use. 
+            model_type (str, optional): The ranking model to use.
                 Either "bm25" or "qld".
                 Defaults to "bm25".
             k_hits (int, optional): The number of hits to retrieve per query.

@@ -122,7 +122,6 @@ def rank_eval_main(
                 mean_response_time = result["mean_response_time"]
 
             if isinstance(metrics, dict):
-                print("result:", metrics)
                 all_results.append(
                     (
                         index_variant["name"],

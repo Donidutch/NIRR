@@ -1,6 +1,6 @@
 import itertools
 import time
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -10,7 +10,6 @@ from evaluation.metrics import get_metric
 from evaluation.models import Model
 
 from .evaluate import evaluate_run
-from .utils import load_queries_and_qrels
 
 
 def create_run(
@@ -36,6 +35,23 @@ def create_run(
     for qid, search_results in batch_search_output.items():
         run[qid] = {result.docid: result.score for result in search_results}  # type: ignore  # noqa: E501
     return run
+
+
+def run_and_evaluate_model(
+    model,
+    train_queries: List[str],
+    train_qids_str: List[str],
+    training_qrels: pd.DataFrame,
+    metrics: Dict[str, float],
+) -> Tuple[float, Dict[str, float]]:
+    start_time = time.time()
+
+    run = create_run(model, train_queries, train_qids_str)
+    response_time = (time.time() - start_time) / len(train_qids_str)
+
+    measures = evaluate_run(run, training_qrels, metrics)
+
+    return response_time, measures
 
 
 def tune_parameters(
@@ -144,6 +160,113 @@ def set_model_config(model, model_type: str, best_config):
         model.set_qld_parameters(mu)
 
 
+def generate_folds(
+    unique_qids: pd.Series, kfolds: int, seed: int = 42
+) -> Dict[int, List[str]]:
+    rng = np.random.default_rng(seed)
+    choice = rng.choice(range(kfolds), size=len(unique_qids))
+    groups = {c: [] for c in range(kfolds)}
+    for c, qid in zip(choice, unique_qids):
+        groups[c].append(qid)
+    return groups
+
+
+def get_training_data(groups, fold, queries, qrels, unique_qids):
+    validation_set = groups[fold]
+    training_set = set(unique_qids).difference(set(validation_set))
+
+    if isinstance(qrels, dict):
+        qrels = pd.read_csv(
+            "data/proc_data/train_sample/sample_qrels.tsv",
+            sep=" ",
+            names=["qid", "Q0", "docid", "rel"],
+        )
+
+    training_qrels = qrels.loc[qrels["qid"].isin(training_set)]
+    train_queries = [
+        queries.loc[queries["qid"] == qid]["query"].values[0] for qid in training_set
+    ]
+    train_qids = list(training_set)
+    train_qids_str = [str(qid) for qid in train_qids]
+    return train_queries, train_qids, training_qrels, train_qids_str
+
+
+def tune_and_set_parameters(
+    model,
+    train_queries: List[str],
+    train_qids: List[int],
+    training_qrels: pd.DataFrame,
+    fold: int,
+    model_type: str,
+    metric: str,
+    results_df: pd.DataFrame,
+) -> Tuple[pd.DataFrame, str]:
+    fold_params_performance = tune_parameters(
+        model,
+        train_queries,
+        train_qids,
+        training_qrels,
+        fold=fold,
+        model_type=model_type,
+        tuning_measure=metric,
+    )
+
+    best_config = fold_params_performance.groupby("params")["score"].mean().idxmax()
+
+    if model_type == "bm25":
+        best_config = tuple(map(float, best_config[1:-1].split(", ")))
+    elif model_type == "lm":
+        best_config = int(float(best_config.strip("()").split(",")[0]))
+
+    set_model_config(model, model_type, best_config)
+
+    return fold_params_performance, best_config
+
+
+def run_model_on_folds(
+    num_folds: int,
+    groups: Dict[int, List[str]],
+    queries: pd.DataFrame,
+    qrels: pd.DataFrame,
+    model,
+    model_type: str,
+    metric: str,
+    results_df: pd.DataFrame,
+    metrics: Dict[str, float],
+    unique_qids: pd.Series,
+) -> Tuple[Dict[str, float], List[float], pd.DataFrame, str]:
+    response_times = []
+    best_config = None
+
+    for i in tqdm(range(num_folds), desc="Folds", total=num_folds):
+        train_queries, train_qids, training_qrels, train_qids_str = get_training_data(
+            groups, i, queries, qrels, unique_qids
+        )
+
+        fold_params_performance, best_config = tune_and_set_parameters(
+            model,
+            train_queries,
+            train_qids,
+            training_qrels,
+            i + 1,
+            model_type,
+            metric,
+            results_df,
+        )
+
+        results_df = pd.concat([results_df, fold_params_performance], ignore_index=True)
+
+        response_time, measures = run_and_evaluate_model(
+            model, train_queries, train_qids_str, training_qrels, metrics
+        )
+        response_times.append(response_time)
+
+        for metric in metrics:
+            metrics[metric] += measures[metric]
+
+    return metrics, response_times, results_df, best_config
+
+
 def run_cross_validation(
     queries_file: str,
     qrels_file: str,
@@ -152,71 +275,34 @@ def run_cross_validation(
     model_type: str = "bm25",
     tuning_measure: str = "ndcg_cut_10",
 ) -> Dict[str, Union[str, Dict[str, float], pd.DataFrame, float]]:
-    queries, qrels = load_queries_and_qrels(queries_file, qrels_file)
+    queries = pd.read_csv(queries_file, sep=" ", names=["qid", "query"])
     qrels = pd.read_csv(qrels_file, sep=" ", names=["qid", "Q0", "docid", "rel"])
-    seed = 42
-    num_folds = kfolds
-
-    rng = np.random.default_rng(seed)
     unique_qids = queries["qid"].unique()
-    choice = rng.choice(range(num_folds), size=len(unique_qids))
-    groups = {c: [] for c in range(num_folds)}
-    for c, qid in zip(choice, unique_qids):
-        groups[c].append(qid)
 
+    groups = generate_folds(unique_qids, kfolds)
     results_df = pd.DataFrame(columns=["fold", "model_type", "params", "score"])
     model = Model(index_path)
 
     K = 10
     metric = f"ndcg_cut_{K}"
-
     metrics = get_metric(get_all_metrics=True)
-    response_times = []
 
-    for i in tqdm(range(num_folds), desc="Folds", total=num_folds):
-        validation_set = groups[i]
-        training_set = set(unique_qids).difference(set(validation_set))
-        training_qrels = qrels.loc[qrels["qid"].isin(training_set)]
-        train_queries = [
-            queries.loc[queries["qid"] == qid]["query"].values[0]
-            for qid in training_set
-        ]
-        train_qids = list(training_set)
-        train_qids_str = [str(qid) for qid in train_qids]
-        fold_params_performance = tune_parameters(
-            model,
-            train_queries,
-            train_qids,
-            training_qrels,
-            fold=i + 1,
-            model_type=model_type,
-            tuning_measure=metric,
-        )
-
-        results_df = pd.concat([results_df, fold_params_performance], ignore_index=True)
-
-        best_config = results_df.groupby("params")["score"].mean().idxmax()
-        results_df["best_config"] = best_config
-        if model_type == "bm25":
-            best_config = tuple(map(float, best_config[1:-1].split(", ")))
-        elif model_type == "lm":
-            best_config = int(float(best_config.strip("()").split(",")[0]))
-
-        set_model_config(model, model_type, best_config)
-
-        start_time = time.time()
-
-        run = create_run(model, train_queries, train_qids_str)
-        response_time = (time.time() - start_time) / len(train_qids)
-        response_times.append(response_time)
-
-        measures = evaluate_run(run, training_qrels, metric=list(metrics.keys()))
-        for metric in metrics:
-            metrics[metric] += measures[metric]
+    metrics, response_times, results_df, best_config = run_model_on_folds(
+        kfolds,
+        groups,
+        queries,
+        qrels,
+        model,
+        model_type,
+        metric,
+        results_df,
+        metrics,
+        unique_qids,
+    )
 
     for metric in metrics:
-        metrics[metric] /= num_folds
-    mean_response_time = sum(response_times) / num_folds
+        metrics[metric] /= kfolds
+    mean_response_time = sum(response_times) / kfolds
 
     return {
         "best_config": best_config,
