@@ -1,7 +1,6 @@
 from typing import Optional
 import typer
 import os
-from evaluation.rank_eval import rank_eval_main
 
 app = typer.Typer()
 
@@ -52,6 +51,8 @@ def run_rank_eval_cmd(
     kfolds: int,
     tuning_measure: str = "ndcg_cut_10",
 ) -> None:
+    from evaluation.rank_eval import rank_eval_main
+
     rank_eval_main(queries_file, qrels_file, index_path, kfolds, tuning_measure)
 
 
@@ -62,6 +63,8 @@ def run_rank_eval_single_index_cmd(
     index_path: str,
     tuning_measure: str = "ndcg_cut_10",
 ) -> None:
+    from evaluation.rank_eval import rank_eval_main
+
     rank_eval_main(queries_file, qrels_file, index_path, None, tuning_measure)
 
 

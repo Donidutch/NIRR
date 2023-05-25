@@ -5,21 +5,15 @@
   <img alt="Repository size" src="https://img.shields.io/github/repo-size/{{Donidutch}}/NIR?color=56BEB8">
   <img alt="License" src="https://img.shields.io/github/license/{{Donidutch}}/NIR?color=56BEB8">
 </p>
-<p align="center">
-  <a href="#dart-about">About</a> &#xa0; | &#xa0; 
-  <a href="#white_check_mark-requirements">Requirements</a> &#xa0; | &#xa0;
-  <a href="#checkered_flag-starting">Starting</a> &#xa0; | &#xa0;
-  <a href="#memo-license">License</a> &#xa0; | &#xa0;
-  <a href="https://github.com/{{YOUR_GITHUB_USERNAME}}" target="_blank">Author</a>
-</p>
 <br>
 
 ## Table of Contents
 
 - [About](#about)
 - [Getting Started](#getting_started)
+- [Prerequisites](#prereq)
+- [Installing](#installing)
 - [Usage](#usage)
-- [Contributing](../CONTRIBUTING.md)
 
 ## About <a name = "about"></a>
 
@@ -29,7 +23,7 @@ The Information Retrieval Evaluation Project is a Python-based project designed 
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See [deployment](#deployment) for notes on how to deploy the project on a live system.
 
-## Prerequisites
+## Prerequisites <a name = "prereq"></a>
 
 Before starting  you need to have Git and Python installed. Additionally, it is recommended to use a virtual environment, such as Poetry, to manage the project dependencies.
 
@@ -37,15 +31,15 @@ Before starting  you need to have Git and Python installed. Additionally, it is 
 ...
 ```
 
-### Installing
+## Installing <a name = "installing"></a>
 
 
 ```
 # Clone this project
-$ git clone https://github.com/{{YOUR_GITHUB_USERNAME}}/nirproject
+$ git clone https://github.com/Donidutch/NIR
 
 # Access
-$ cd nirproject
+$ cd NIR/src
 
 # Install Poetry (if not already installed)
 $ pip install poetry

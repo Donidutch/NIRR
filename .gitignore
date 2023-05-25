@@ -6,4 +6,4 @@
 /src/pyserini
 /docs/latex
 /src/.*
-/src/poetry.lock
+/tests
