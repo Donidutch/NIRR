@@ -76,7 +76,7 @@ def run_all_cmd(
     qrels_input_file: str = "data/train/msmarco-doctrain-qrels.tsv",
     qrels_output_file_sample: str = "data/train/msmarco-doctrain-qrels.sample.tsv",
     path_to_dataset: str = "data/trec/",
-    indexes_path: str = "pyserini/indexes/",
+    indexes_path: str = "indexes/pyserini/indexes/",
     kfolds: int = 2,
     tuning_measure: str = "ndcg_cut_10",
     sample_qid_path: Optional[str] = None,
@@ -100,6 +100,21 @@ def run_all_cmd(
     build_indexes_cmd(path_to_dataset, indexes_path)
     run_rank_eval_cmd(queries_file, qrels_file, indexes_path, kfolds, tuning_measure)
 
+@app.command()
+def create_pyterrie_index(
+    path_to_dataset: str,
+    output_folder: str,
+) -> None:
+    from indexing.index_pyterrier import create_indices
+
+    if os.path.exists(output_folder):
+        print("Index folder already exists. Skipping indexing.")
+        print(output_folder)
+        return
+    else:
+        # os.mkdir(output_folder)
+        create_indices(path_to_dataset, output_folder)
+    
 
 if __name__ == "__main__":
     app()

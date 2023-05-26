@@ -32,6 +32,6 @@ This project relies on several Python libraries, including:
 
 ## Usage 
 
-- `python main.py run-rank-eval-single-index-cmd data/proc_data/train_sample/sample_queries.tsv data/proc_data/train_sample/sample_qrels.tsv pyserini/indexes/full_index`
+- `python main.py run-rank-eval-single-index-cmd data/proc_data/train_sample/sample_queries.tsv data/proc_data/train_sample/sample_qrels.tsv indexes/pyserini/indexes/full_index`
 
--`python main.py run-rank-eval-cmd data/proc_data/train_sample/sample_queries.tsv data/proc_data/train_sample/sample_qrels.tsv pyserini/indexes/ 5 `
+-`python main.py run-rank-eval-cmd data/proc_data/train_sample/sample_queries.tsv data/proc_data/train_sample/sample_qrels.tsv indexes/pyserini/indexes/ 5 `

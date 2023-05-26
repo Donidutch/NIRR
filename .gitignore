@@ -6,4 +6,5 @@
 /src/pyserini
 /docs/latex
 /src/.*
-/tests
+/src/indexes
+/notebooks/lab

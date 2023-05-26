@@ -57,7 +57,7 @@ doc_lengths_array = np.array(doc_lengths)
 del doc_lengths
 
 
-index_path = "pyserini/indexes/full_index"
+index_path = "indexes/pyserini/indexes/full_index"
 searcher = LuceneSearcher(index_path)
 
 total_docs = searcher.num_docs
@@ -236,7 +236,7 @@ def measure_index_statistics(
     return df
 
 
-output_folder = "pyserini/indexes/"
+output_folder = "indexes/pyserini/indexes/"
 
 index_variants = [
     {
@@ -269,7 +269,7 @@ print(index_variants)
 measure_index_statistics("data/train/queries.doctrain.tsv", index_variants)
 
 
-index = IndexReader("pyserini/indexes/full_index/")
+index = IndexReader("indexes/pyserini/indexes/full_index/")
 vocabulary_len = index.stats()["unique_terms"]
 print(f"Vocabulary length: {vocabulary_len}")
 print(f"statistics: {index.stats()}")
