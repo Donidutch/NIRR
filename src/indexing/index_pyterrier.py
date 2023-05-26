@@ -55,18 +55,16 @@ def create_indices(corpus_dir, index_dir):
 
         build_time = end_time - start_time
 
-        print(
-            f"Indexing of {config['index_type']} completed in {build_time} seconds."
-        )
-        
-        build_times[config['index_type']] = build_time
+        print(f"Indexing of {config['index_type']} completed in {build_time} seconds.")
+
+        build_times[config["index_type"]] = build_time
 
     build_times_df = pd.DataFrame(
         list(build_times.items()), columns=["Index_Variant", "Build_Time"]
     )
 
     build_times_df.to_csv("pyterrier_build_times.csv", index=False)
-    
+
     print("All indexing tasks completed.")
 
     return build_times

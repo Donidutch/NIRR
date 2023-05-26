@@ -31,6 +31,8 @@ def tune_and_set_parameters(
     train_qids: List[int],
     training_qrels: pd.DataFrame,
     fold: int,
+    index_path: str,  # Add index_path
+    corpus_path: str,  # Add corpus_path
     model_type: str,
     metric: str,
     results_df: pd.DataFrame,
@@ -40,7 +42,9 @@ def tune_and_set_parameters(
         train_queries,
         train_qids,
         training_qrels,
-        fold=fold,
+        fold,
+        index_path,  # Pass index_path
+        corpus_path,  # Pass corpus_path
         model_type=model_type,
         tuning_measure=metric,
     )
@@ -52,8 +56,6 @@ def tune_and_set_parameters(
         best_config_dict = ast.literal_eval(best_config)
     else:
         best_config_dict = ast.literal_eval(str(best_config))
-    print(best_config_dict)
-    # Now you can access the values as you would in a regular dictionary
 
     if model_type == "bm25":
         best_config = (best_config_dict["k1"], best_config_dict["b"])
@@ -72,6 +74,8 @@ def tune_parameters(
     train_qids: List[int],
     qrels: Union[pd.DataFrame, Dict[str, Dict[str, int]]],
     fold: int,
+    index_path: str,  # Add index_path
+    corpus_path: str,  # Add corpus_path
     model_type: str = "bm25",
     tuning_measure: str = "ndcg_cut_10",
     config_file: str = "evaluation/gridsearch_params.json",
@@ -92,7 +96,13 @@ def tune_parameters(
         model.set_parameters(model_type, dict(zip(tuning_params.keys(), params)))
 
         qids = [str(qid) for qid in train_qids]
-        run = create_run(model, train_queries, qids)
+        run = create_run(
+            model,
+            train_queries,
+            qids,
+            index_path,  # Pass index_path to create_run
+            corpus_path,  # Pass corpus_path to create_run
+        )
         measures = evaluate_run(run, qrels, metric=tuning_measure)
         params_str = str(dict(zip(tuning_params.keys(), params)))
 

@@ -19,8 +19,8 @@ class Model:
         self.searcher = LuceneSearcher(index_path)
         self.model_type = model_type
         self.k = k_hits
-        self.k1 = 0.9
-        self.b = 0.6
+        self.k1 = 1.2
+        self.b = 0.75
         self.mu = 1000
 
         if self.model_type == "bm25":
@@ -45,6 +45,7 @@ class Model:
                 list of search results, where each result is represented
                 as a dictionary with 'docid' and 'score' keys.
         """
+
         return self.searcher.batch_search(
             queries, qids, k=self.k, threads=os.cpu_count()  # type: ignore
         )
@@ -57,6 +58,7 @@ class Model:
             k1 (float): The k1 parameter value.
             b (float): The b parameter value.
         """
+
         self.searcher.set_bm25(k1, b)
 
     def set_qld_parameters(self, mu: int) -> None:

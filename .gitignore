@@ -8,3 +8,5 @@
 /src/.*
 /src/indexes
 /notebooks/lab
+/src/pyterrier
+/src/build_times.csv

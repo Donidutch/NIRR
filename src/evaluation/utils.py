@@ -22,7 +22,7 @@ def create_run_file(
     run = []
     for qid, search_results in batch_search_output.items():
         for result in search_results:
-            row_str = f"{qid} 0 {result.docno} {result.rank} {result.score} {run_name}"
+            row_str = f"{qid} 0 {result.docid} {result.rank} {result.score} {run_name}"
             run.append(row_str)
     with open(f"outputs/{run_name}.run", "w") as f:
         for l in run:  # noqa: E741

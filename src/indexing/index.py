@@ -4,6 +4,33 @@ from typing import Any, Dict
 
 import pandas as pd
 
+index_variants = [
+    {
+        "name": "full_index",
+        "index_path": "full_index/",
+        "stopwords": False,
+        "stemming": False,
+    },
+    {
+        "name": "stopwords_removed",
+        "index_path": "stopwords_removed/",
+        "stopwords": True,
+        "stemming": False,
+    },
+    {
+        "name": "stemming",
+        "index_path": "stemming/",
+        "stopwords": False,
+        "stemming": True,
+    },
+    {
+        "name": "stopwords_removed_stemming",
+        "index_path": "stopwords_removed_stemming/",
+        "stopwords": True,
+        "stemming": True,
+    },
+]
+
 
 def build_index(
     variant: Dict[str, Any], path_to_dataset: str, output_folder: str
@@ -24,7 +51,7 @@ def build_index(
     stemmer_arg = "none" if not variant["stemming"] else "porter"
     keep_stopwords_arg = "--keepStopwords" if not variant["stopwords"] else ""
     stopwords_file_arg = "" if not variant["stopwords"] else "--stopwords stopword.txt"
-    num_threads = os.cpu_count()
+    num_threads = 1
     command = f""" python -m pyserini.index.lucene \
         --collection CleanTrecCollection \
         --input {path_to_dataset} \
@@ -55,11 +82,11 @@ def build_all_indexes(path_to_dataset: str, output_folder: str) -> Dict[str, flo
         output_folder (str): The output folder to store the indexes.
 
     Returns:
-        Dict[str, float]: A dictionary containing the build times for each index variant.
+        Dict[str, float]: A dictionary containing the build times for each index variant
 
     """
     build_times = {}
-    for variant in index_variants:  # noqa: F821
+    for variant in index_variants:
         build_time = build_index(variant, path_to_dataset, output_folder)
         build_times[variant["name"]] = build_time
 

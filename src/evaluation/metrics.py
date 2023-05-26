@@ -27,6 +27,8 @@ def get_metric(
         "recall_5": 0,
         "recall_10": 0,
         "recall_20": 0,
+        "ndcg_cut_10": 0,
+        "map": 0,
     }
 
     if get_all_metrics:

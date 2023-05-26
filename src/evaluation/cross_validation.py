@@ -11,9 +11,11 @@ def run_cross_validation(
     queries_file: str,
     qrels_file: str,
     index_path: str,
+    corpus_path: str,
     kfolds: int,
     model_type: str = "bm25",
     tuning_measure: str = "ndcg_cut_10",
+    expansion_method: str = None,
 ) -> Dict[str, Union[str, Dict[str, float], pd.DataFrame, float]]:
     """
     Run k-fold cross-validation using the given queries and relevance judgements files.
@@ -35,9 +37,20 @@ def run_cross_validation(
          - metrics: A dictionary of evaluation metrics
          - mean_response_time: The mean response time across all folds
          - results_df: The results DataFrame
-    """
-    queries = pd.read_csv(queries_file, sep=" ", names=["qid", "query"])
-    qrels = pd.read_csv(qrels_file, sep=" ", names=["qid", "Q0", "docid", "rel"])
+    #"""
+    test = True
+    if test:
+        queries = pd.read_csv(queries_file, sep=",")
+        qrels = pd.read_csv(qrels_file, sep=",")
+        qrels.rename(columns={"label": "rel"}, inplace=True)
+        qrels.rename(columns={"iteration": "Q0"}, inplace=True)
+        qrels.rename(columns={"docno": "docid"}, inplace=True)
+        new_cols = ["qid", "Q0", "docid", "rel"]
+
+        qrels = qrels.reindex(columns=new_cols)
+    else:
+        queries = pd.read_csv(queries_file, sep=" ", names=["qid", "query"])
+        qrels = pd.read_csv(qrels_file, sep=" ", names=["qid", "Q0", "docid", "rel"])
     unique_qids = pd.Series(queries["qid"].unique())
 
     groups = generate_folds(unique_qids, kfolds)
@@ -58,6 +71,9 @@ def run_cross_validation(
         results_df,
         metrics,
         unique_qids,
+        index_path,
+        corpus_path,
+        expansion_method,
     )
 
     for metric in metrics:

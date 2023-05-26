@@ -19,6 +19,7 @@ def get_training_data(groups, fold, queries, qrels, unique_qids):
     training_set = set(unique_qids).difference(set(validation_set))
 
     if isinstance(qrels, dict):
+        print("Loading qrels from dict")
         qrels = pd.read_csv(
             "data/proc_data/train_sample/sample_qrels.tsv",
             sep=" ",
