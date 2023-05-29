@@ -3,12 +3,13 @@ from typing import Optional, Union, Dict, Any
 
 from typing import Optional, Dict
 
+
 class Metrics:
     def __init__(self):
         self.metrics = {
             "ndcg": 0,
             "ndcg_cut_10": 0,
-            "map":0,
+            "map": 0,
             "recip_rank": 0,
             "P_5": 0,
             "P_10": 0,
@@ -23,4 +24,3 @@ class Metrics:
 
     def get_metric(self, metric_name: Optional[str]) -> Optional[int]:
         return self.metrics.get(metric_name)
-    

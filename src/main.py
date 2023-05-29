@@ -167,7 +167,6 @@ def run_test_all_cmd(
         )
 
 
-
 @app.command()
 def create_pyterrie_index(
     path_to_dataset: str,

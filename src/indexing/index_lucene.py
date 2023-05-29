@@ -7,6 +7,7 @@ from pyserini.search import LuceneSearcher
 from pyserini.collection import Collection
 from pyserini.setup import configure_classpath
 from jnius import autoclass
+
 # import logging
 
 # logging.getLogger('pyserini').setLevel(logging.WARNING)
@@ -21,7 +22,7 @@ from jnius import autoclass
 # configure_classpath("/home/nicklas/Desktop/NIRproject/src/.venv/lib/python3.8/site-packages/pyserini/resources/jars/")
 # Define collection directory
 collection_dir = "/data/lab/trec/"
-JIndexCollection = autoclass('io.anserini.index.IndexCollection')
+JIndexCollection = autoclass("io.anserini.index.IndexCollection")
 
 
 # JIndexCollection.main(index_dir)
@@ -37,7 +38,9 @@ documents = [
     {"id": "2", "contents": "This is the second document."},
     {"id": "3", "contents": "And this is the third one."},
 ]
-pd.DataFrame(documents, columns=['id', 'contents']).to_json('data/pyserini/docs.jsonl', orient='records', lines=True)
+pd.DataFrame(documents, columns=["id", "contents"]).to_json(
+    "data/pyserini/docs.jsonl", orient="records", lines=True
+)
 # # Add the documents to the index
 # for doc in documents:
 #     doc_str = json.dumps(doc)  # Convert the dictionary to a JSON string
@@ -46,15 +49,26 @@ pd.DataFrame(documents, columns=['id', 'contents']).to_json('data/pyserini/docs.
 # # Close the index to write the changes to disk
 # indexer.close()
 
-args = ["-collection", "CleanTrecCollection", "-input", "data/lab/trec/", "-index", "my_index"]
+args = [
+    "-collection",
+    "CleanTrecCollection",
+    "-input",
+    "data/lab/trec/",
+    "-index",
+    "my_index",
+]
 indexCollectionInstance = JIndexCollection.main(args)
 JIndexCollection.LOG.info("Starting indexer...")
 
-args = ["-collection", "CleanTrecCollection", "-input", "data/lab/trec/", "-index", "my_index"]
+args = [
+    "-collection",
+    "CleanTrecCollection",
+    "-input",
+    "data/lab/trec/",
+    "-index",
+    "my_index",
+]
 indexCollectionInstance = JIndexCollection.main(args)
-
-
-
 
 
 def verify_document_in_index(index_directory, doc_id):

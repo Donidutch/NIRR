@@ -3,6 +3,7 @@ import time
 from typing import Any, Dict
 
 import pandas as pd
+
 index_variants = [
     {
         "name": "full_index",
