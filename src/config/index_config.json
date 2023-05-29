@@ -1,0 +1,28 @@
+{
+    "index_variants": [
+        {
+            "name": "full_index",
+            "index_path": "full_index/",
+            "stopwords": false,
+            "stemming": false
+        },
+        {
+            "name": "stopwords_removed",
+            "index_path": "stopwords_removed/",
+            "stopwords": true,
+            "stemming": false
+        },
+        {
+            "name": "stemming",
+            "index_path": "stemming/",
+            "stopwords": false,
+            "stemming": true
+        },
+        {
+            "name": "stopwords_removed_stemming",
+            "index_path": "stopwords_removed_stemming/",
+            "stopwords": true,
+            "stemming": true
+        }
+    ]
+}

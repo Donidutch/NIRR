@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from pyserini.search.lucene import LuceneSearcher
 from typing import List, Dict, Union
 
@@ -19,8 +20,13 @@ class Model:
         self.searcher = LuceneSearcher(index_path)
         self.model_type = model_type
         self.k = k_hits
+<<<<<<< HEAD:src/evaluation/models.py
         self.k1 = 1.2
         self.b = 0.75
+=======
+        self.k1 = np.random.uniform(0.1, 1.0)
+        self.b = np.random.uniform(0.1, 1.0)
+>>>>>>> 57dfe61 (Add configuration and build files, refactor cross-validation code):src/retrieval/ranking_models/models.py
         self.mu = 1000
 
         if self.model_type == "bm25":
@@ -58,8 +64,14 @@ class Model:
             k1 (float): The k1 parameter value.
             b (float): The b parameter value.
         """
+<<<<<<< HEAD:src/evaluation/models.py
 
         self.searcher.set_bm25(k1, b)
+=======
+        self.k1 = np.round((np.random.uniform(0.1, 1.0)), 2)
+        self.b = np.round((np.random.uniform(0.1, 1.0)), 2)
+        self.searcher.set_bm25(self.k1, self.b)
+>>>>>>> 57dfe61 (Add configuration and build files, refactor cross-validation code):src/retrieval/ranking_models/models.py
 
     def set_qld_parameters(self, mu: int) -> None:
         """
@@ -82,7 +94,10 @@ class Model:
         """
         if model_type == "bm25":
             self.set_bm25_parameters(parameters["k1"], parameters["b"])
+            # self.k1 = parameters["k1"]
+            # self.b = parameters["b"]
         elif model_type == "lm":
             self.set_qld_parameters(parameters["mu"])
+            self.mu = parameters["mu"]
         else:
             raise ValueError(f"Unknown model type: {model_type}")

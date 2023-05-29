@@ -3,6 +3,32 @@ import time
 from typing import Any, Dict
 
 import pandas as pd
+index_variants = [
+    {
+        "name": "full_index",
+        "index_path": "full_index/",
+        "stopwords": False,
+        "stemming": False,
+    },
+    {
+        "name": "stopwords_removed",
+        "index_path": "stopwords_removed/",
+        "stopwords": True,
+        "stemming": False,
+    },
+    {
+        "name": "stemming",
+        "index_path": "stemming/",
+        "stopwords": False,
+        "stemming": True,
+    },
+    {
+        "name": "stopwords_removed_stemming",
+        "index_path": "stopwords_removed_stemming/",
+        "stopwords": True,
+        "stemming": True,
+    },
+]
 
 index_variants = [
     {

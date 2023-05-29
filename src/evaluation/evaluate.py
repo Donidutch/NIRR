@@ -33,7 +33,7 @@ def create_dic(qrels_df: pd.DataFrame, index: int = 42) -> Dict[str, Dict[str, i
 def evaluate_run(
     run: Dict[str, Dict[str, int]],
     qrels_df: Union[Dict[str, Dict[str, int]], pd.DataFrame],
-    metric: Union[str, set] = "ndcg_cut_10",
+    metric: Union[str, set],
 ) -> Dict[str, int]:
     """
     Evaluate a run using the specified relevance judgments.
@@ -51,13 +51,14 @@ def evaluate_run(
     """
 
     if metric is None:
+        print("hi")
         metric = {"ndcg_cut_10"}
     elif isinstance(metric, str):
         metric = {metric}
     qrels = create_dic(qrels_df) if isinstance(qrels_df, pd.DataFrame) else qrels_df
 
     evaluator = pytrec_eval.RelevanceEvaluator(qrels, metric)
-
+    print("metriiics", metric)
     results = evaluator.evaluate(run)
 
     metric_values = {}
@@ -65,5 +66,7 @@ def evaluate_run(
         res = pytrec_eval.compute_aggregated_measure(
             measure, [query_measures[measure] for query_measures in results.values()]
         )
-        metric_values[measure] = np.round(res, 3)
+
+        metric_values[measure] = res  # np.round(res, 5)
+    # print("metricss",metric_values)
     return metric_values

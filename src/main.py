@@ -16,7 +16,7 @@ def create_sample_queries_cmd(
     queries_output_path: str,
     qrels_output_path: str,
 ) -> None:
-    from indexing.subset_data import create_sample_queries
+    from preprocessing.subset_data import create_sample_queries
 
     create_sample_queries(
         sample_qid_path,
@@ -90,7 +90,7 @@ def run_all_cmd(
     qrels_output_file_sample: str = "data/train/msmarco-doctrain-qrels.sample.tsv",
     corpus_path: str = "data/msmarco-docs.tsv",
     path_to_dataset: str = "data/trec/",
-    indexes_path: str = "indexes/pyserini/indexes/",
+    indexes_path: str = "data/indexes/pyserini/indexes/",
     kfolds: int = 2,
     tuning_measure: str = "ndcg_cut_10",
     sample_qid_path: Optional[str] = None,
@@ -165,6 +165,7 @@ def run_test_all_cmd(
             tuning_measure,
             expansion_method,
         )
+
 
 
 @app.command()

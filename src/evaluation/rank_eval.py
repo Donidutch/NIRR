@@ -1,15 +1,20 @@
+# evaluation/rank_eval.py
 import os
 from typing import List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+<<<<<<< HEAD
 from evaluation.cross_validation import run_cross_validation
 from evaluation.query_expansion import (
     expand_query_bert,
     expand_query_word2vec,
     pseudo_relevance_feedback,
 )
+=======
+from evaluation.cross_validation.cross_validation import run_cross_validation
+>>>>>>> 57dfe61 (Add configuration and build files, refactor cross-validation code)
 
 
 def create_summary(all_results: List[Tuple], models: List[str]) -> pd.DataFrame:
@@ -33,6 +38,7 @@ def create_summary(all_results: List[Tuple], models: List[str]) -> pd.DataFrame:
 
 
 def read_and_preprocess_files(
+<<<<<<< HEAD
     topic_file: str, qrels_file: str
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     test = True
@@ -49,6 +55,24 @@ def read_and_preprocess_files(
         queries = pd.read_csv(topic_file, sep=" ", names=["qid", "query"])
         qrels_df = pd.read_csv(qrels_file, sep=" ", names=["qid", "q0", "docid", "rel"])
 
+=======
+    queries_file: str, qrels_file: str
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    test = True
+    if test:
+        queries = pd.read_csv(queries_file, sep=",")
+        qrels_df = pd.read_csv(qrels_file, sep=",")
+
+        qrels_df.rename(
+            columns={"label": "rel", "iteration": "q0", "docno": "docid"}, inplace=True
+        )
+        new_cols = ["qid", "q0", "docid", "rel"]
+        qrels_df = qrels_df.reindex(columns=new_cols)
+    else:
+        queries = pd.read_csv(queries_file, sep=" ", names=["qid", "query"])
+        qrels_df = pd.read_csv(qrels_file, sep=" ", names=["qid", "q0", "docid", "rel"])
+    # print(qrels_df.head())
+>>>>>>> 57dfe61 (Add configuration and build files, refactor cross-validation code)
     return queries, qrels_df
 
 
@@ -57,6 +81,7 @@ def get_results(
     model_type,
     tuning_measure,
     kfolds,
+<<<<<<< HEAD
     topic_file,
     qrels_file,
     expansion_method,
@@ -105,12 +130,30 @@ def get_results(
             expanded_queries = [str(query) for query in queries["query"]]
 
         run = create_run(searcher, expanded_queries, qids, index_path, corpus_path)
+=======
+    queries_file,
+    qrels_file,
+) -> Tuple:
+    if kfolds is None:
+        print("Running on the whole dataset")
+        from evaluation.evaluate import evaluate_run
+        from evaluation.utils.metrics import get_metric
+        from evaluation.model_evaluation import ModelEvaluator
+        from retrieval.ranking_models.models import Model
+
+        searcher = Model(index_variant["path"], model_type=model_type)
+        queries, qrels_df = read_and_preprocess_files(queries_file, qrels_file)
+        qids = [str(qid) for qid in queries["qid"]]
+        evaluator = ModelEvaluator(searcher)
+        run = evaluator.create_run(queries["query"], qids)
+>>>>>>> 57dfe61 (Add configuration and build files, refactor cross-validation code)
         metrics = evaluate_run(run, qrels_df, metric=get_metric(get_all_metrics=True))
         best_config = "Not applicable"
         mean_response_time = None
 
     else:
         print("Running Cross Validation")
+<<<<<<< HEAD
         print("expansion_method", expansion_method)
         print(index_variant["path"])
         result = run_cross_validation(
@@ -122,6 +165,18 @@ def get_results(
             model_type=model_type,
             tuning_measure=tuning_measure,
             expansion_method=expansion_method,
+=======
+        # print(index_variant["path"])
+        # print(kfolds)
+        # print(model_type)
+        result = run_cross_validation(
+            queries_file,
+            qrels_file,
+            index_variant["path"],
+            kfolds,
+            model_type,
+            tuning_measure=tuning_measure,
+>>>>>>> 57dfe61 (Add configuration and build files, refactor cross-validation code)
         )
         best_config = result["best_config"]
         metrics = result["metrics"]
@@ -131,7 +186,7 @@ def get_results(
 
 
 def rank_eval_main(
-    topic_file: str,
+    queries_file: str,
     qrels_file: str,
     index_path: str,
     corpus_path: str,
@@ -159,9 +214,9 @@ def rank_eval_main(
     ]
 
     for index_variant in tqdm(index_dict, desc="Index Variants", total=len(index_dict)):
-        headline = "{0}".format(index_variant["name"])
-        print("\n")
-        print("#" * 10, headline, "#" * 20)
+        # headline = "{0}".format(index_variant["name"])
+        # print("\n")
+        # print("#" * 10, headline, "#" * 20)
 
         for model_type in models:
             print("Model: {0}".format(model_type))
@@ -170,6 +225,7 @@ def rank_eval_main(
                 model_type,
                 tuning_measure,
                 kfolds,
+<<<<<<< HEAD
                 topic_file,
                 qrels_file,
                 expansion_method,
@@ -179,6 +235,12 @@ def rank_eval_main(
                 num_docs=10,
             )
 
+=======
+                queries_file,
+                qrels_file,
+            )
+            # print(metrics)
+>>>>>>> 57dfe61 (Add configuration and build files, refactor cross-validation code)
             if isinstance(metrics, dict):
                 all_results.append(
                     (
@@ -198,6 +260,10 @@ def rank_eval_main(
                 )
 
     summary_df = create_summary(all_results, models)
+<<<<<<< HEAD
     summary_df.to_csv(
         f"output/{expansion_method}.csv", index=False, float_format="%.3f"
     )
+=======
+    summary_df.to_csv(f"output/results.csv", index=False, float_format="%.3f")
+>>>>>>> 57dfe61 (Add configuration and build files, refactor cross-validation code)
